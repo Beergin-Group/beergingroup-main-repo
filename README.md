@@ -1,0 +1,2 @@
+# BeerginGroup
+repository for course "APPLICATION DEVELOPMENT AND EMERGING TECHNOLOGIES"
