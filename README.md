@@ -87,4 +87,4 @@ MediRemind is intended to assist with medication scheduling and record-keeping. 
 
 ---
 
-*Developed by Beergin as an academic project.*
+*Developed by Beergin as an academic project.*
