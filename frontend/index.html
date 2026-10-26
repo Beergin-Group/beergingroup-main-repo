@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MediRemind — Cross-Platform Medicine & Prescription Reminder</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0d9488">
+</head>
+<body class="device-desktop">
+
+  <!-- Platform Viewport Switcher Bar -->
+  <header class="platform-bar">
+    <div class="brand-badge">
+      <span class="pulse-dot"></span>
+      <span>MediRemind Cross-Platform</span>
+      <span style="opacity: 0.6; font-size: 0.75rem;">v1.0 (Beergin Team)</span>
+    </div>
+    <div class="platform-selectors">
+      <button class="platform-btn active" id="btnModeDesktop" onclick="setDeviceMode('desktop')">
+        💻 Desktop View
+      </button>
+      <button class="platform-btn" id="btnModeTablet" onclick="setDeviceMode('tablet')">
+        📟 Tablet View
+      </button>
+      <button class="platform-btn" id="btnModeMobile" onclick="setDeviceMode('mobile')">
+        📱 Mobile Phone Frame
+      </button>
+      <button class="platform-btn" id="btnTestChime" onclick="testAlarmNotification()" title="Test Sound Chime & System Notification">
+        🔔 Test Reminder Chime
+      </button>
+    </div>
+  </header>
+
+  <!-- App Viewport Wrapper -->
+  <div class="app-viewport-wrapper">
+    <div class="app-container">
+      
+      <!-- Main Application Layout -->
+      <div class="main-layout">
+        
+        <!-- Sidebar Navigation (Desktop) -->
+        <aside class="sidebar">
+          <div>
+            <div class="brand-header">
+              <div class="brand-icon">💊</div>
+              <div>
+                <h1 class="brand-title">MediRemind</h1>
+                <p class="brand-subtitle">Smart Dose Tracker</p>
+              </div>
+            </div>
+
+            <!-- Caregiver Switcher Pill if applicable -->
+            <div id="caregiverActiveBox" style="display: none; margin-bottom: 16px;">
+              <div class="caregiver-pill">
+                <span>Caregiver View:</span>
+                <select id="dependentSelect" class="form-select" style="font-size: 0.8rem; padding: 2px 6px;" onchange="changeActiveDependent(this.value)">
+                  <option value="">Myself</option>
+                </select>
+              </div>
+            </div>
+
+            <ul class="nav-links">
+              <li class="nav-item active" data-tab="dashboard" onclick="switchTab('dashboard')">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                <span>Today's Doses</span>
+              </li>
+              <li class="nav-item" data-tab="medicines" onclick="switchTab('medicines')">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                <span>Prescriptions</span>
+              </li>
+              <li class="nav-item" data-tab="adherence" onclick="switchTab('adherence')">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                <span>Adherence Report</span>
+              </li>
+              <li class="nav-item" data-tab="caregiver" onclick="switchTab('caregiver')">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                <span>Caregiver View</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Bottom User Card -->
+          <div class="user-profile-badge">
+            <div class="user-info">
+              <div class="avatar" id="userAvatarText">ME</div>
+              <div>
+                <div class="user-name" id="userNameText">Maria Elena</div>
+                <span class="user-role-badge" id="userRoleBadge">Patient</span>
+              </div>
+            </div>
+            <button class="btn btn-outline btn-sm" onclick="showAuthModal()" title="Switch Account">
+              ⇄
+            </button>
+          </div>
+        </aside>
+
+        <!-- Main Content View -->
+        <main class="content-area">
+
+          <!-- View 1: DASHBOARD -->
+          <section id="tab-dashboard" class="tab-pane active">
+            <div class="top-header">
+              <div>
+                <h2 class="page-title" id="dashboardGreeting">Good Day, Maria Elena</h2>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;" id="todayDateStr">Monday, October 12, 2026</p>
+              </div>
+              <div class="header-actions">
+                <button class="btn btn-outline btn-sm" onclick="enableWebNotifications()">
+                  <span id="notifStatusIcon">🔔</span> <span id="notifStatusText">Enable Notifications</span>
+                </button>
+                <button class="btn btn-primary" onclick="showAddMedicineModal()">
+                  + Add Prescription
+                </button>
+              </div>
+            </div>
+
+            <!-- Next Dose Live Countdown Banner -->
+            <div class="countdown-card" id="nextDoseCard">
+              <div class="countdown-info">
+                <div class="countdown-pill-icon" id="nextDosePillIcon">💊</div>
+                <div>
+                  <div class="countdown-sub">Up Next</div>
+                  <div class="countdown-title" id="nextDoseName">Metformin (500 mg)</div>
+                  <div class="countdown-details" id="nextDoseTimeAndMeal">Scheduled at 08:00 AM • With Meal</div>
+                </div>
+              </div>
+              <div class="countdown-timer-box">
+                <div class="countdown-timer-value" id="countdownClock">00:00:00</div>
+                <div class="countdown-timer-label">Time Remaining</div>
+              </div>
+              <div>
+                <button class="btn btn-success" id="btnTakeNextDose" onclick="takeNextDoseNow()">
+                  ✓ Mark Taken
+                </button>
+              </div>
+            </div>
+
+            <!-- Quick Metrics Grid -->
+            <div class="stats-grid">
+              <div class="stat-card">
+                <div class="stat-icon-wrapper stat-icon-primary">📋</div>
+                <div>
+                  <div class="stat-val" id="statTodayCount">3 / 4</div>
+                  <div class="stat-label">Today's Doses Taken</div>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon-wrapper stat-icon-success">📈</div>
+                <div>
+                  <div class="stat-val" id="statAdherenceRate">96%</div>
+                  <div class="stat-label">Adherence Rate</div>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon-wrapper stat-icon-warning">🔥</div>
+                <div>
+                  <div class="stat-val" id="statStreakDays">5 Days</div>
+                  <div class="stat-label">Adherence Streak</div>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon-wrapper stat-icon-danger">📦</div>
+                <div>
+                  <div class="stat-val" id="statLowStockCount">0 Low</div>
+                  <div class="stat-label">Inventory Alerts</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Today's Dose Timeline -->
+            <div class="section-title">
+              <span>Today's Dose Schedule</span>
+              <span style="font-size: 0.85rem; font-weight: normal; color: var(--text-muted);" id="doseSyncStatus">Auto-synced</span>
+            </div>
+            <div class="doses-timeline" id="todayDosesList">
+              <!-- Rendered via JS -->
+            </div>
+          </section>
+
+          <!-- View 2: MEDICINES & PRESCRIPTIONS -->
+          <section id="tab-medicines" class="tab-pane" style="display: none;">
+            <div class="top-header">
+              <div>
+                <h2 class="page-title">Prescriptions & Medicines</h2>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">Manage drug names, dosage forms, instructions & inventory levels.</p>
+              </div>
+              <div class="header-actions">
+                <button class="btn btn-primary" onclick="showAddMedicineModal()">
+                  + New Medicine
+                </button>
+              </div>
+            </div>
+
+            <div class="medicines-grid" id="medicinesGrid">
+              <!-- Rendered via JS -->
+            </div>
+          </section>
+
+          <!-- View 3: ADHERENCE REPORTS -->
+          <section id="tab-adherence" class="tab-pane" style="display: none;">
+            <div class="top-header">
+              <div>
+                <h2 class="page-title">Adherence Analytics & Report</h2>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">Track dose compliance, adherence streak, and download clinical summary.</p>
+              </div>
+              <div class="header-actions">
+                <button class="btn btn-outline" onclick="exportAdherenceCsv()">
+                  📥 Download CSV Report
+                </button>
+                <button class="btn btn-primary" onclick="window.print()">
+                  🖨️ Print Summary
+                </button>
+              </div>
+            </div>
+
+            <div class="adherence-row">
+              <!-- Weekly Chart -->
+              <div class="chart-card">
+                <h3 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 4px;">Last 7 Days Compliance</h3>
+                <p style="font-size: 0.82rem; color: var(--text-muted);">Percentage of scheduled doses taken on time</p>
+                <div class="weekly-bars" id="weeklyBarsContainer">
+                  <!-- Rendered via JS -->
+                </div>
+              </div>
+
+              <!-- Overall Adherence Metric Card -->
+              <div class="chart-card" style="display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+                <div style="font-size: 3.5rem; font-weight: 800; color: var(--primary);" id="reportAdherenceLarge">96%</div>
+                <div style="font-weight: 700; font-size: 1.1rem; margin-top: 4px;">Overall Medication Adherence</div>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); max-width: 320px; margin-top: 8px;">
+                  High adherence significantly improves treatment outcomes. Maintain your current streak!
+                </p>
+                <div style="margin-top: 16px; display: flex; gap: 16px;">
+                  <div>
+                    <div style="font-size: 1.25rem; font-weight: 700; color: var(--success);" id="reportTakenDosesCount">68</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">Taken</div>
+                  </div>
+                  <div>
+                    <div style="font-size: 1.25rem; font-weight: 700; color: var(--danger);" id="reportSkippedDosesCount">2</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">Skipped</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Medicine Breakdown Table -->
+            <div class="chart-card" style="margin-top: 20px;">
+              <h3 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 12px;">Compliance by Medicine</h3>
+              <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;" id="adherenceMedTable">
+                  <thead>
+                    <tr style="border-bottom: 2px solid var(--border); text-align: left; color: var(--text-secondary);">
+                      <th style="padding: 10px;">Medicine</th>
+                      <th style="padding: 10px;">Dosage</th>
+                      <th style="padding: 10px;">Stock Remaining</th>
+                      <th style="padding: 10px;">Taken / Total</th>
+                      <th style="padding: 10px;">Adherence</th>
+                    </tr>
+                  </thead>
+                  <tbody id="adherenceMedTableBody">
+                    <!-- Rendered via JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- View 4: CAREGIVER VIEW -->
+          <section id="tab-caregiver" class="tab-pane" style="display: none;">
+            <div class="top-header">
+              <div>
+                <h2 class="page-title">Caregiver & Dependent Management</h2>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">Manage prescriptions and monitor dose schedules for elderly or family dependents.</p>
+              </div>
+              <div class="header-actions">
+                <button class="btn btn-primary" onclick="showAddDependentModal()">
+                  + Add Dependent
+                </button>
+              </div>
+            </div>
+
+            <div class="medicines-grid" id="dependentsGrid">
+              <!-- Rendered via JS -->
+            </div>
+          </section>
+
+        </main>
+      </div>
+
+      <!-- Mobile Bottom Navigation (Shown only on Mobile simulator / viewport) -->
+      <nav class="mobile-bottom-nav">
+        <button class="mobile-nav-btn active" data-tab="dashboard" onclick="switchTab('dashboard')">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+          <span>Today</span>
+        </button>
+        <button class="mobile-nav-btn" data-tab="medicines" onclick="switchTab('medicines')">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+          <span>Meds</span>
+        </button>
+        <button class="mobile-nav-btn" data-tab="adherence" onclick="switchTab('adherence')">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          <span>Reports</span>
+        </button>
+        <button class="mobile-nav-btn" data-tab="caregiver" onclick="switchTab('caregiver')">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+          <span>Caregiver</span>
+        </button>
+      </nav>
+
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- MODAL: ADD MEDICINE & PRESCRIPTION -->
+  <div class="modal-overlay" id="addMedicineModal" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Add Prescription Medicine</h3>
+        <button class="btn btn-outline btn-sm" onclick="closeModal('addMedicineModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <form id="addMedicineForm" onsubmit="handleSaveMedicine(event)">
+          <div class="form-group">
+            <label class="form-label">Medicine Name *</label>
+            <input type="text" id="medFormName" class="form-input" placeholder="e.g. Metformin, Lisinopril, Amoxicillin" required>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group">
+              <label class="form-label">Dosage *</label>
+              <input type="text" id="medFormDosage" class="form-input" placeholder="e.g. 500 mg, 10 ml" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Form</label>
+              <select id="medFormType" class="form-select">
+                <option value="tablet">Tablet</option>
+                <option value="capsule">Capsule</option>
+                <option value="syrup">Liquid / Syrup</option>
+                <option value="inhaler">Inhaler</option>
+                <option value="injection">Injection</option>
+                <option value="drops">Drops</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group">
+              <label class="form-label">Stock Quantity</label>
+              <input type="number" id="medFormStock" class="form-input" value="30" min="1">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Low Stock Alert Below</label>
+              <input type="number" id="medFormLowThreshold" class="form-input" value="5" min="1">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Instructions & Food Timing</label>
+            <input type="text" id="medFormInstructions" class="form-input" placeholder="e.g. Take with breakfast; drink full glass of water">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Meal Timing Relation</label>
+            <select id="medFormMealTiming" class="form-select">
+              <option value="with_meal">With Meal</option>
+              <option value="before_meal">Before Meal</option>
+              <option value="after_meal">After Meal</option>
+              <option value="no_food_relation">No Food Requirement</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Daily Dose Times (Comma separated e.g. 08:00, 20:00)</label>
+            <input type="text" id="medFormDoseTimes" class="form-input" value="08:00, 20:00" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Pill Visual Color</label>
+            <select id="medFormColor" class="form-select">
+              <option value="#0d9488">Teal</option>
+              <option value="#0284c7">Sky Blue</option>
+              <option value="#10b981">Emerald Green</option>
+              <option value="#8b5cf6">Purple</option>
+              <option value="#f59e0b">Amber Gold</option>
+              <option value="#ef4444">Coral Red</option>
+            </select>
+          </div>
+          <div class="modal-footer" style="margin: 0 -24px -20px -24px;">
+            <button type="button" class="btn btn-outline" onclick="closeModal('addMedicineModal')">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save Prescription</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: DOSE REMINDER ALARM CHIME -->
+  <div class="modal-overlay" id="doseAlarmModal" style="display: none;">
+    <div class="modal-card" style="max-width: 420px;">
+      <div class="alarm-modal">
+        <div class="alarm-icon-bounce">🔔</div>
+        <h3 style="font-size: 1.35rem; font-weight: 800; margin-bottom: 6px;">Time for Your Medication!</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 16px;" id="alarmDoseDetails">
+          Metformin 500 mg • Take with meal
+        </p>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <button class="btn btn-success" id="btnAlarmTakeNow" onclick="handleAlarmAction('take')">
+            ✓ Mark as Taken
+          </button>
+          <button class="btn btn-warning" id="btnAlarmSnooze" onclick="handleAlarmAction('snooze')">
+            ⏰ Snooze for 15 Minutes
+          </button>
+          <button class="btn btn-outline" onclick="handleAlarmAction('dismiss')">
+            Dismiss
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: FAST AUTH / ACCOUNT SWITCHER -->
+  <div class="modal-overlay" id="authModal" style="display: none;">
+    <div class="modal-card" style="max-width: 460px;">
+      <div class="modal-header">
+        <h3>MediRemind Account</h3>
+        <button class="btn btn-outline btn-sm" onclick="closeModal('authModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="background: #f1f5f9; padding: 12px; border-radius: var(--radius-sm); margin-bottom: 16px;">
+          <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 6px;">
+            ⚡ QUICK DEMO PROFILES:
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn btn-primary btn-sm" style="flex: 1;" onclick="quickLogin('patient@mediremind.com', 'password123')">
+              👤 Maria (Patient)
+            </button>
+            <button class="btn btn-outline btn-sm" style="flex: 1;" onclick="quickLogin('caregiver@mediremind.com', 'password123')">
+              👥 Francis (Caregiver)
+            </button>
+          </div>
+        </div>
+
+        <form id="loginForm" onsubmit="handleManualLogin(event)">
+          <div class="form-group">
+            <label class="form-label">Email Address</label>
+            <input type="email" id="loginEmail" class="form-input" placeholder="user@mediremind.com" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <input type="password" id="loginPassword" class="form-input" placeholder="••••••••" required>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%;">Sign In</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD DEPENDENT -->
+  <div class="modal-overlay" id="addDependentModal" style="display: none;">
+    <div class="modal-card" style="max-width: 460px;">
+      <div class="modal-header">
+        <h3>Add Dependent Family Member</h3>
+        <button class="btn btn-outline btn-sm" onclick="closeModal('addDependentModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="handleSaveDependent(event)">
+          <div class="form-group">
+            <label class="form-label">Dependent Full Name *</label>
+            <input type="text" id="depName" class="form-input" placeholder="e.g. Grandmother Rosa, Timmy" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Relationship</label>
+            <input type="text" id="depRelationship" class="form-input" placeholder="e.g. Parent, Child, Spouse">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Medical Notes / Conditions</label>
+            <textarea id="depNotes" class="form-textarea" rows="3" placeholder="e.g. Chronic hypertension, asthma, needs morning reminders"></textarea>
+          </div>
+          <div class="modal-footer" style="margin: 0 -24px -20px -24px;">
+            <button type="button" class="btn btn-outline" onclick="closeModal('addDependentModal')">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save Dependent</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
