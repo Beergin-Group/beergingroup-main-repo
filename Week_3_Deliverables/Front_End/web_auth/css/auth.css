@@ -1,0 +1,451 @@
+:root {
+  --primary: #0d9488;
+  --primary-hover: #0f766e;
+  --primary-light: #ccfbf1;
+  --primary-subtle: #f0fdfa;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --bg-app: #f1f5f9;
+  --card-bg: #ffffff;
+  --border-color: #cbd5e1;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --success: #10b981;
+  --info: #0284c7;
+  --shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.05);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+  background-color: #0f172a;
+  color: var(--text-main);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Simulator Bar */
+.simulator-bar {
+  background: #1e293b;
+  color: #e2e8f0;
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #334155;
+  font-size: 13px;
+  z-index: 100;
+}
+
+.sim-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: #38bdf8;
+}
+
+.device-switcher {
+  display: flex;
+  background: #0f172a;
+  padding: 3px;
+  border-radius: 8px;
+  gap: 4px;
+}
+
+.device-btn {
+  background: transparent;
+  color: #94a3b8;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.device-btn.active, .device-btn:hover {
+  background: #334155;
+  color: #ffffff;
+}
+
+.device-btn.active {
+  background: var(--primary);
+  color: white;
+}
+
+/* Viewport Shell */
+.simulator-stage {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+  background: radial-gradient(circle at 50% 20%, #1e293b 0%, #0f172a 100%);
+  overflow-y: auto;
+}
+
+.viewport-frame {
+  background: var(--bg-app);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s ease, height 0.3s ease;
+  min-height: 640px;
+}
+
+/* Device Frame Sizes */
+.viewport-frame.mode-desktop {
+  width: 900px;
+  max-width: 95%;
+  height: 680px;
+}
+
+.viewport-frame.mode-tablet {
+  width: 600px;
+  height: 740px;
+}
+
+.viewport-frame.mode-mobile {
+  width: 380px;
+  height: 720px;
+  border-radius: 36px;
+  border: 10px solid #1e293b;
+}
+
+/* Auth Container */
+.auth-wrapper {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.auth-card {
+  background: var(--card-bg);
+  border-radius: 16px;
+  padding: 32px 28px;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: var(--shadow);
+  border: 1px solid #e2e8f0;
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.app-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 54px;
+  height: 54px;
+  background: var(--primary-light);
+  border-radius: 14px;
+  font-size: 28px;
+  margin-bottom: 12px;
+}
+
+.auth-header h1 {
+  font-size: 22px;
+  color: var(--primary);
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.auth-header p {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* Tabs */
+.auth-tabs {
+  display: flex;
+  background: #f1f5f9;
+  padding: 4px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tab-btn.active {
+  background: white;
+  color: var(--primary);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* Form Groups */
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 6px;
+}
+
+.input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 12px;
+  color: var(--primary);
+  font-size: 16px;
+}
+
+.form-control {
+  width: 100%;
+  padding: 10px 14px 10px 38px;
+  border: 1px solid var(--border-color);
+  background: #f8fafc;
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--text-main);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.form-control:focus {
+  border-color: var(--primary);
+  background: white;
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
+}
+
+.form-control.is-invalid {
+  border-color: var(--danger);
+  background: #fff5f5;
+}
+
+.toggle-pwd {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.invalid-feedback {
+  color: var(--danger);
+  font-size: 11px;
+  margin-top: 4px;
+  display: none;
+}
+
+.is-invalid + .invalid-feedback,
+.input-container.has-error ~ .invalid-feedback {
+  display: block;
+}
+
+/* Password Strength Bar */
+.strength-bar-wrapper {
+  margin-top: 6px;
+}
+
+.strength-segments {
+  display: flex;
+  gap: 4px;
+  height: 4px;
+  margin-bottom: 4px;
+}
+
+.strength-segment {
+  flex: 1;
+  background: #e2e8f0;
+  border-radius: 2px;
+  transition: background 0.25s;
+}
+
+.strength-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+}
+
+.strength-text {
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* Role Selector */
+.role-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.role-option {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 10px;
+  cursor: pointer;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.2s;
+}
+
+.role-option.active {
+  border-color: var(--primary);
+  background: var(--primary-light);
+}
+
+.role-option input {
+  display: none;
+}
+
+.role-icon {
+  font-size: 20px;
+}
+
+.role-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.role-sub {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+/* Submit Button */
+.btn-submit {
+  width: 100%;
+  padding: 12px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.btn-submit:hover {
+  background: var(--primary-hover);
+}
+
+.btn-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Demo Switcher Box */
+.demo-accounts {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px dashed #cbd5e1;
+}
+
+.demo-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #94a3b8;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.demo-chips {
+  display: flex;
+  gap: 8px;
+}
+
+.chip-btn {
+  flex: 1;
+  padding: 6px 8px;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.15s;
+}
+
+.chip-btn:hover {
+  background: #e2e8f0;
+}
+
+/* Toast */
+.toast-notice {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  padding: 12px 18px;
+  background: #1e293b;
+  color: white;
+  border-radius: 8px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  z-index: 999;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.3s ease;
+  pointer-events: none;
+}
+
+.toast-notice.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.toast-notice.success {
+  border-left: 4px solid var(--success);
+}
+
+.toast-notice.error {
+  border-left: 4px solid var(--danger);
+}

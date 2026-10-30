@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MediRemind — Authentication Module Showcase (Week 3)</title>
+  <link rel="stylesheet" href="css/auth.css">
+</head>
+<body>
+
+  <!-- Top Multi-Device Simulator Bar -->
+  <header class="simulator-bar">
+    <div class="sim-title">
+      <span>💊</span>
+      <strong>MediRemind</strong>
+      <span style="color: #94a3b8; font-weight: normal;">| Week 3 Front-End Deliverable</span>
+    </div>
+
+    <div class="device-switcher">
+      <button class="device-btn active" data-mode="desktop">💻 Desktop</button>
+      <button class="device-btn" data-mode="tablet">📟 Tablet</button>
+      <button class="device-btn" data-mode="mobile">📱 Mobile</button>
+    </div>
+
+    <div style="font-size: 11px; color: #94a3b8;">
+      Developer: <strong>Jibson Cabilin</strong> | QA: <strong>Nove Calasang</strong>
+    </div>
+  </header>
+
+  <!-- Interactive Simulator Shell -->
+  <main class="simulator-stage">
+    <div class="viewport-frame mode-desktop" id="viewportFrame">
+
+      <div class="auth-wrapper">
+        <div class="auth-card">
+
+          <div class="auth-header">
+            <div class="app-badge">💊</div>
+            <h1 id="authCardTitle">Sign In to MediRemind</h1>
+            <p id="authCardSub">Access your personal medicine schedule and reminders</p>
+          </div>
+
+          <!-- Tab Bar -->
+          <div class="auth-tabs">
+            <button class="tab-btn active" id="tabLogin">Sign In</button>
+            <button class="tab-btn" id="tabRegister">Register</button>
+          </div>
+
+          <!-- Login Form -->
+          <form id="loginForm" novalidate>
+            <div class="form-group">
+              <label class="form-label" for="loginEmail">Email Address</label>
+              <div class="input-container">
+                <span class="input-icon">✉️</span>
+                <input type="email" id="loginEmail" class="form-control" placeholder="name@example.com" value="patient@mediremind.com" required>
+              </div>
+              <div class="invalid-feedback">Please enter a valid email address.</div>
+            </div>
+
+            <div class="form-group">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <label class="form-label" for="loginPassword" style="margin-bottom: 0;">Password</label>
+                <a href="#" style="font-size: 11px; color: var(--primary); text-decoration: none;">Forgot password?</a>
+              </div>
+              <div class="input-container">
+                <span class="input-icon">🔒</span>
+                <input type="password" id="loginPassword" class="form-control" placeholder="Enter your password" value="password123" required>
+                <button type="button" class="toggle-pwd" title="Toggle visibility">👁️</button>
+              </div>
+              <div class="invalid-feedback">Password is required (min 6 characters).</div>
+            </div>
+
+            <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
+              <input type="checkbox" id="rememberMe" checked>
+              <label for="rememberMe" style="font-size: 12px; color: #475569; cursor: pointer;">Remember this device for 30 days</label>
+            </div>
+
+            <button type="submit" class="btn-submit">
+              Sign In <span>→</span>
+            </button>
+
+            <!-- Test Accounts Quick Fill -->
+            <div class="demo-accounts">
+              <div class="demo-title">Pre-Seeded Demo Accounts (Click to Fill)</div>
+              <div class="demo-chips">
+                <button type="button" class="chip-btn" id="btnDemoPatient">
+                  <span>👤</span> Patient Demo
+                </button>
+                <button type="button" class="chip-btn" id="btnDemoCaregiver">
+                  <span>🩺</span> Caregiver Demo
+                </button>
+              </div>
+            </div>
+          </form>
+
+          <!-- Register Form (Hidden by default) -->
+          <form id="registerForm" style="display: none;" novalidate>
+            <div class="form-group">
+              <label class="form-label" for="regName">Full Name</label>
+              <div class="input-container">
+                <span class="input-icon">👤</span>
+                <input type="text" id="regName" class="form-control" placeholder="Maria Elena Santos" required>
+              </div>
+              <div class="invalid-feedback">Full name is required (min 2 characters).</div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="regEmail">Email Address</label>
+              <div class="input-container">
+                <span class="input-icon">✉️</span>
+                <input type="email" id="regEmail" class="form-control" placeholder="maria.santos@example.com" required>
+              </div>
+              <div class="invalid-feedback">Please enter a valid RFC 5322 email address.</div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">I am using MediRemind as:</label>
+              <div class="role-grid">
+                <div class="role-option active" data-role="patient">
+                  <input type="radio" name="role" value="patient" checked>
+                  <span class="role-icon">👤</span>
+                  <div>
+                    <div class="role-label">Patient</div>
+                    <div class="role-sub">My own meds</div>
+                  </div>
+                </div>
+                <div class="role-option" data-role="caregiver">
+                  <input type="radio" name="role" value="caregiver">
+                  <span class="role-icon">🩺</span>
+                  <div>
+                    <div class="role-label">Caregiver</div>
+                    <div class="role-sub">For family/dependents</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="regPassword">Password</label>
+              <div class="input-container">
+                <span class="input-icon">🔒</span>
+                <input type="password" id="regPassword" class="form-control" placeholder="Min 8 chars, 1 digit, 1 letter" required>
+                <button type="button" class="toggle-pwd" title="Toggle visibility">👁️</button>
+              </div>
+              <!-- Real-time Strength Meter -->
+              <div class="strength-bar-wrapper">
+                <div class="strength-segments">
+                  <div class="strength-segment" id="seg1"></div>
+                  <div class="strength-segment" id="seg2"></div>
+                  <div class="strength-segment" id="seg3"></div>
+                  <div class="strength-segment" id="seg4"></div>
+                </div>
+                <div class="strength-meta">
+                  <span class="strength-text" id="strengthText">Enter password</span>
+                  <span style="color: #94a3b8;">8+ chars, 1 number</span>
+                </div>
+              </div>
+              <div class="invalid-feedback">Password must be at least 8 characters with at least one number.</div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="regConfirm">Confirm Password</label>
+              <div class="input-container">
+                <span class="input-icon">🔁</span>
+                <input type="password" id="regConfirm" class="form-control" placeholder="Re-type your password" required>
+                <button type="button" class="toggle-pwd" title="Toggle visibility">👁️</button>
+              </div>
+              <div class="invalid-feedback">Passwords do not match.</div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="regPhone">Mobile Phone (Optional for SMS)</label>
+              <div class="input-container">
+                <span class="input-icon">📱</span>
+                <input type="tel" id="regPhone" class="form-control" placeholder="+63 917 123 4567">
+              </div>
+            </div>
+
+            <button type="submit" class="btn-submit">
+              Create Account <span>✓</span>
+            </button>
+          </form>
+
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Interactive Feedback Toast -->
+  <div class="toast-notice" id="toastNotice">Notification</div>
+
+  <script src="js/auth.js"></script>
+</body>
+</html>
