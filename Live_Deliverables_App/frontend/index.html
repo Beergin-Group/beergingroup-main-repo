@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MediRemind — Live Deliverables Application (Week 3 & 4)</title>
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+  <!-- Top Multi-Device Simulator Bar -->
+  <header class="sim-header">
+    <div class="sim-brand">
+      <span class="pill-logo">💊</span>
+      <strong>MediRemind</strong>
+      <span>| Week 3 (Auth) & Week 4 (Medicine CRUD) Live Demonstration</span>
+    </div>
+
+    <div class="device-picker">
+      <button class="dev-btn active" data-mode="desktop">💻 Desktop</button>
+      <button class="dev-btn" data-mode="tablet">📟 Tablet</button>
+      <button class="dev-btn" data-mode="mobile">📱 Mobile</button>
+    </div>
+
+    <div class="sim-user-status">
+      <span class="status-badge">● API Live (localhost:5000)</span>
+      <span style="color: #94a3b8;">Beergin Team</span>
+    </div>
+  </header>
+
+  <!-- Interactive Device Stage -->
+  <main class="stage-area">
+    <div class="device-frame mode-desktop" id="deviceFrame">
+
+      <!-- Navigation Header (Shown when logged in) -->
+      <nav class="app-nav" id="appNav" style="display: none;">
+        <div class="nav-title">
+          <span>💊</span> MediRemind
+        </div>
+        <div class="nav-user-ctrl">
+          <div class="user-tag" id="userTag">👤 Maria Santos (patient)</div>
+          <button class="btn-logout" id="btnLogout">Sign Out</button>
+        </div>
+      </nav>
+
+      <!-- VIEW 1: AUTHENTICATION MODULE (WEEK 3) -->
+      <section class="view-container" id="authView">
+        <div class="auth-box">
+          <div class="auth-card">
+
+            <div class="auth-header">
+              <div class="logo-circ">💊</div>
+              <h2 id="authCardHeading">Sign In to MediRemind</h2>
+              <p id="authCardSub">Manage prescriptions, schedules and reminder alerts</p>
+            </div>
+
+            <!-- Tab Switcher -->
+            <div class="auth-tab-switch">
+              <button class="auth-tab-btn active" id="tabSignIn">Sign In</button>
+              <button class="auth-tab-btn" id="tabSignUp">Register</button>
+            </div>
+
+            <!-- Sign In Form -->
+            <form id="signInForm" novalidate>
+              <div class="form-group">
+                <label class="form-label" for="loginEmail">Email Address</label>
+                <div class="input-icon-wrap">
+                  <span class="icon">✉️</span>
+                  <input type="email" id="loginEmail" class="form-control" placeholder="name@example.com" value="patient@mediremind.com" required>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                  <label class="form-label" for="loginPwd" style="margin-bottom: 0;">Password</label>
+                  <a href="#" style="font-size: 11px; color: var(--primary); text-decoration: none;">Forgot password?</a>
+                </div>
+                <div class="input-icon-wrap">
+                  <span class="icon">🔒</span>
+                  <input type="password" id="loginPwd" class="form-control" value="password123" required>
+                  <button type="button" class="btn-eye" title="Toggle visibility">👁️</button>
+                </div>
+              </div>
+
+              <button type="submit" class="btn-submit">Sign In →</button>
+
+              <!-- Quick Demo Switcher -->
+              <div class="demo-box">
+                <div class="demo-title">Quick Test Credentials</div>
+                <div class="demo-buttons">
+                  <button type="button" class="btn-demo" id="fillPatient">👤 Patient Demo</button>
+                  <button type="button" class="btn-demo" id="fillCaregiver">🩺 Caregiver Demo</button>
+                </div>
+              </div>
+            </form>
+
+            <!-- Sign Up Form (Week 3 Form Validation & Password Strength) -->
+            <form id="signUpForm" style="display: none;" novalidate>
+              <div class="form-group">
+                <label class="form-label" for="regName">Full Name *</label>
+                <div class="input-icon-wrap">
+                  <span class="icon">👤</span>
+                  <input type="text" id="regName" class="form-control" placeholder="Maria Elena Santos" required>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="regEmail">Email Address *</label>
+                <div class="input-icon-wrap">
+                  <span class="icon">✉️</span>
+                  <input type="email" id="regEmail" class="form-control" placeholder="maria@example.com" required>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Account Role</label>
+                <div class="role-group">
+                  <div class="role-card active" data-role="patient">
+                    <input type="radio" name="role" value="patient" checked>
+                    <span style="font-size: 18px;">👤</span>
+                    <div>
+                      <div style="font-size: 12px; font-weight: 700;">Patient</div>
+                      <div style="font-size: 10px; color: #64748b;">My meds</div>
+                    </div>
+                  </div>
+                  <div class="role-card" data-role="caregiver">
+                    <input type="radio" name="role" value="caregiver">
+                    <span style="font-size: 18px;">🩺</span>
+                    <div>
+                      <div style="font-size: 12px; font-weight: 700;">Caregiver</div>
+                      <div style="font-size: 10px; color: #64748b;">For family</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="regPwd">Password *</label>
+                <div class="input-icon-wrap">
+                  <span class="icon">🔒</span>
+                  <input type="password" id="regPwd" class="form-control" placeholder="Min 8 chars, 1 digit, 1 letter" required>
+                  <button type="button" class="btn-eye">👁️</button>
+                </div>
+                <!-- Dynamic Password Strength Bar -->
+                <div class="strength-segments">
+                  <div class="str-seg" id="s1"></div>
+                  <div class="str-seg" id="s2"></div>
+                  <div class="str-seg" id="s3"></div>
+                  <div class="str-seg" id="s4"></div>
+                </div>
+                <div class="str-meta">
+                  <span id="strLabel" style="font-weight: 600; color: #64748b;">Enter password</span>
+                  <span style="color: #94a3b8;">8+ chars, 1 number</span>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="regConfirm">Confirm Password *</label>
+                <div class="input-icon-wrap">
+                  <span class="icon">🔁</span>
+                  <input type="password" id="regConfirm" class="form-control" placeholder="Re-type password" required>
+                  <button type="button" class="btn-eye">👁️</button>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="regPhone">Phone Number (Optional)</label>
+                <div class="input-icon-wrap">
+                  <span class="icon">📱</span>
+                  <input type="tel" id="regPhone" class="form-control" placeholder="+63 917 123 4567">
+                </div>
+              </div>
+
+              <button type="submit" class="btn-submit">Create Account ✓</button>
+            </form>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 2: MEDICINE MANAGEMENT (WEEK 4) -->
+      <section class="view-container" id="medicineView" style="display: none;">
+        <!-- Header Bar -->
+        <div class="med-header-bar">
+          <div class="med-header-left">
+            <h3>💊 Prescriptions & Medicines</h3>
+            <p>Complete medicine CRUD operations, dosage administration & stock refill management</p>
+          </div>
+          <button class="btn-add" id="btnOpenAddMed">
+            <span>+</span> Add Medicine
+          </button>
+        </div>
+
+        <!-- Search & Filter Controls -->
+        <div class="search-filter-bar">
+          <div class="search-input-wrap">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchMeds" placeholder="Search medicines by name or dosage...">
+          </div>
+          <div class="chips-row">
+            <div class="filter-chip active" data-form="all">All Forms</div>
+            <div class="filter-chip" data-form="tablet">Tablet</div>
+            <div class="filter-chip" data-form="capsule">Capsule</div>
+            <div class="filter-chip" data-form="syrup">Syrup</div>
+            <div class="filter-chip" data-form="injection">Injection</div>
+            <div class="filter-chip" data-form="inhaler">Inhaler</div>
+          </div>
+        </div>
+
+        <!-- Medicine List Cards -->
+        <div class="med-list-content" id="medListContent">
+          <!-- Rendered dynamically -->
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Add Medicine Modal -->
+  <div class="modal-backdrop" id="addMedModal">
+    <div class="modal-dialog">
+      <div class="dialog-header">
+        <h3 style="font-size: 16px; font-weight: 700;">+ Add New Medicine</h3>
+        <button class="card-btn close-dlg">✕</button>
+      </div>
+      <form id="addMedForm">
+        <div class="dialog-body">
+          <div class="form-group">
+            <label class="form-label" for="addMedName">Medicine Name *</label>
+            <input type="text" id="addMedName" class="form-control" placeholder="e.g. Amoxicillin" required>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <div class="form-group" style="flex: 1;">
+              <label class="form-label" for="addMedDosage">Dosage *</label>
+              <input type="text" id="addMedDosage" class="form-control" placeholder="e.g. 500 mg, 10 ml" required>
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label class="form-label" for="addMedFormSelect">Form</label>
+              <select id="addMedFormSelect" class="form-control">
+                <option value="tablet">Tablet</option>
+                <option value="capsule">Capsule</option>
+                <option value="syrup">Syrup</option>
+                <option value="injection">Injection</option>
+                <option value="drops">Drops</option>
+                <option value="inhaler">Inhaler</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="addMedNotes">Doctor Instructions / Notes</label>
+            <textarea id="addMedNotes" class="form-control" rows="2" placeholder="e.g. Take 1 tablet twice daily with food"></textarea>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <div class="form-group" style="flex: 1;">
+              <label class="form-label" for="addMedStock">Initial Stock</label>
+              <input type="number" id="addMedStock" class="form-control" value="30" min="0">
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label class="form-label" for="addMedThreshold">Low Alert Below</label>
+              <input type="number" id="addMedThreshold" class="form-control" value="5" min="0">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Color Tag</label>
+            <input type="hidden" id="addMedColor" value="#0d9488">
+            <div class="color-swatch-list" id="addColors">
+              <button type="button" class="color-dot selected" data-color="#0d9488" style="background:#0d9488;"></button>
+              <button type="button" class="color-dot" data-color="#0284c7" style="background:#0284c7;"></button>
+              <button type="button" class="color-dot" data-color="#8b5cf6" style="background:#8b5cf6;"></button>
+              <button type="button" class="color-dot" data-color="#f43f5e" style="background:#f43f5e;"></button>
+              <button type="button" class="color-dot" data-color="#f59e0b" style="background:#f59e0b;"></button>
+              <button type="button" class="color-dot" data-color="#10b981" style="background:#10b981;"></button>
+            </div>
+          </div>
+        </div>
+        <div class="dialog-footer">
+          <button type="button" class="btn-demo close-dlg">Cancel</button>
+          <button type="submit" class="btn-add">Save Medicine</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Edit Medicine Modal -->
+  <div class="modal-backdrop" id="editMedModal">
+    <div class="modal-dialog">
+      <div class="dialog-header">
+        <h3 style="font-size: 16px; font-weight: 700;">✏️ Edit Prescription</h3>
+        <button class="card-btn close-dlg">✕</button>
+      </div>
+      <form id="editMedForm">
+        <div class="dialog-body">
+          <div class="form-group">
+            <label class="form-label" for="editMedName">Medicine Name *</label>
+            <input type="text" id="editMedName" class="form-control" required>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <div class="form-group" style="flex: 1;">
+              <label class="form-label" for="editMedDosage">Dosage *</label>
+              <input type="text" id="editMedDosage" class="form-control" required>
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label class="form-label" for="editMedForm">Form</label>
+              <select id="editMedForm" class="form-control">
+                <option value="tablet">Tablet</option>
+                <option value="capsule">Capsule</option>
+                <option value="syrup">Syrup</option>
+                <option value="injection">Injection</option>
+                <option value="drops">Drops</option>
+                <option value="inhaler">Inhaler</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="editMedNotes">Doctor Instructions</label>
+            <textarea id="editMedNotes" class="form-control" rows="2"></textarea>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <div class="form-group" style="flex: 1;">
+              <label class="form-label" for="editMedStock">Current Stock</label>
+              <input type="number" id="editMedStock" class="form-control" min="0">
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label class="form-label" for="editMedThreshold">Low Stock Alert Below</label>
+              <input type="number" id="editMedThreshold" class="form-control" min="0">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Color Tag</label>
+            <input type="hidden" id="editMedColor" value="#0d9488">
+            <div class="color-swatch-list" id="editColors">
+              <button type="button" class="color-dot selected" data-color="#0d9488" style="background:#0d9488;"></button>
+              <button type="button" class="color-dot" data-color="#0284c7" style="background:#0284c7;"></button>
+              <button type="button" class="color-dot" data-color="#8b5cf6" style="background:#8b5cf6;"></button>
+              <button type="button" class="color-dot" data-color="#f43f5e" style="background:#f43f5e;"></button>
+              <button type="button" class="color-dot" data-color="#f59e0b" style="background:#f59e0b;"></button>
+              <button type="button" class="color-dot" data-color="#10b981" style="background:#10b981;"></button>
+            </div>
+          </div>
+        </div>
+        <div class="dialog-footer">
+          <button type="button" class="btn-demo close-dlg">Cancel</button>
+          <button type="submit" class="btn-add">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Delete Modal -->
+  <div class="modal-backdrop" id="deleteMedModal">
+    <div class="modal-dialog" style="max-width: 400px;">
+      <div class="dialog-body" style="text-align: center; padding: 24px;">
+        <div style="font-size: 38px; margin-bottom: 10px;">⚠️</div>
+        <h4 style="font-size: 18px; margin-bottom: 8px;">Delete Prescription?</h4>
+        <p style="font-size: 13px; color: #64748b; line-height: 1.5;">
+          Are you sure you want to delete <strong id="deleteMedTarget">this medicine</strong>? This action cannot be undone and will purge associated schedules.
+        </p>
+      </div>
+      <div class="dialog-footer" style="justify-content: center;">
+        <button type="button" class="btn-demo close-dlg">Cancel</button>
+        <button type="button" class="btn-add" id="btnConfirmDeleteMed" style="background: var(--danger);">Yes, Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live Toast -->
+  <div class="live-toast" id="liveToast">Notification</div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
