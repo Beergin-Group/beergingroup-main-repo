@@ -1,8 +1,8 @@
 /**
- * MediRemind Web System — Backend Server
+ * MediRemind Web System — Backend Server (MVC Architecture)
  * Course: Application Development and Emerging Technologies
  * Team: Beergin (Jerold Sodusta, Francis John Empil, Jibson Cabilin, Nove Calasang)
- * Branch: feature/web-system
+ * Reference Architecture: UCLIS (CCS Standards)
  */
 
 const path = require('path');
@@ -10,53 +10,36 @@ require('dotenv').config({ path: path.join(__dirname, '.env') });
 const express = require('express');
 const cors = require('cors');
 
-const config = require('./src/config');
-const db = require('./src/db');
-const seed = require('./src/db/seed');
-
-const authRoutes     = require('./src/routes/authRoutes');
-const medicineRoutes = require('./src/routes/medicineRoutes');
-const scheduleRoutes = require('./src/routes/scheduleRoutes');
-const doseLogRoutes  = require('./src/routes/doseLogRoutes');
-const adherenceRoutes = require('./src/routes/adherenceRoutes');
-const caregiverRoutes = require('./src/routes/caregiverRoutes');
+const config = require('./config');
+const db = require('./config/db');
+const { requestLogger } = require('./middleware/logger');
+const apiRoutes = require('./routes/index');
 
 const app = express();
 
-// ── Middleware ────────────────────────────────────────────
+// ─── Global Middleware ────────────────────────────────────────────────────────
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(requestLogger);
 
-// Request logger
-app.use((req, res, next) => {
-  const t = Date.now();
-  res.on('finish', () => {
-    const ms = Date.now() - t;
-    console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl} → ${res.statusCode} (${ms}ms)`);
-  });
-  next();
-});
+// ─── Static Frontend Delivery ─────────────────────────────────────────────────
+const distPath = path.resolve(__dirname, '../frontend/dist');
+const legacyPath = path.resolve(__dirname, '../frontend');
+const fs = require('fs');
+const staticPath = fs.existsSync(distPath) ? distPath : legacyPath;
+app.use(express.static(staticPath));
 
-// ── Static Files — Web System Frontend ───────────────────
-const frontendPath = path.resolve(__dirname, '../frontend');
-app.use(express.static(frontendPath));
+// ─── API Routes ───────────────────────────────────────────────────────────────
+app.use('/api', apiRoutes);
 
-// ── API Routes ────────────────────────────────────────────
-app.use('/api/auth',      authRoutes);
-app.use('/api/medicines', medicineRoutes);
-app.use('/api/schedules', scheduleRoutes);
-app.use('/api/dose-logs', doseLogRoutes);
-app.use('/api/adherence', adherenceRoutes);
-app.use('/api/caregiver', caregiverRoutes);
-
-// Health check
+// Health Check
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'online',
     system: 'MediRemind Web System REST API',
-    version: '1.0.0',
-    branch: 'feature/web-system',
+    architecture: 'Standard MVC (UCLIS Compliance)',
+    version: '2.0.0',
     db_driver: db.getDriver().toUpperCase(),
     uptime_seconds: Math.floor(process.uptime()),
     timestamp: new Date().toISOString(),
@@ -64,62 +47,39 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// SPA fallback — serve index.html for all non-API routes
+// ─── SPA Fallback ─────────────────────────────────────────────────────────────
 app.get('*', (req, res) => {
   if (req.path.startsWith('/api')) {
-    return res.status(404).json({ success: false, message: 'API endpoint not found.' });
+    return res.status(404).json({ success: false, message: `API route ${req.method} ${req.originalUrl} not found.` });
   }
-  res.sendFile(path.join(frontendPath, 'index.html'));
+  const indexFile = fs.existsSync(path.join(staticPath, 'index.html'))
+    ? path.join(staticPath, 'index.html')
+    : path.join(legacyPath, 'index.html');
+  res.sendFile(indexFile);
 });
 
-// ── Start Server ──────────────────────────────────────────
+// ─── Global Error Handler ─────────────────────────────────────────────────────
+app.use((err, req, res, next) => {
+  console.error('Unhandled server error:', err);
+  res.status(500).json({ success: false, message: 'An unexpected server error occurred.' });
+});
+
+// ─── Start Server ─────────────────────────────────────────────────────────────
 async function startServer() {
   try {
     await db.init();
-
-    // Auto-seed on first run
-    const testUser = await db.users.findByEmail('patient@mediremind.com');
-    if (!testUser) {
-      console.log('[MediRemind] First-time setup detected. Seeding sample data...');
-      await seed();
-      console.log('[MediRemind] Sample data seeded successfully.');
-    }
-
-    const PORT = config.port || 5000;
-
-    const server = app.listen(PORT, () => {
-      console.log('');
-      console.log('  ╔══════════════════════════════════════════════╗');
-      console.log('  ║     MediRemind — Web System Server           ║');
-      console.log(`  ║     URL  : http://localhost:${PORT}              ║`);
-      console.log(`  ║     DB   : ${db.getDriver().toUpperCase().padEnd(10)}                        ║`);
-      console.log('  ║     Team : Beergin (Jerold, Francis,         ║');
-      console.log('  ║            Jibson, Nove)                     ║');
-      console.log('  ║     Branch: feature/web-system               ║');
-      console.log('  ╚══════════════════════════════════════════════╝');
-      console.log('');
+    const PORT = config.port;
+    app.listen(PORT, () => {
+      console.log(`\n======================================================`);
+      console.log(` MediRemind Backend running on http://localhost:${PORT}`);
+      console.log(` Database driver: ${db.getDriver().toUpperCase()}`);
+      console.log(` Architecture: Proper MVC (Aligned with UCLIS)`);
+      console.log(`======================================================\n`);
     });
-
-    server.on('error', (err) => {
-      if (err.code === 'EADDRINUSE') {
-        const fallback = PORT + 1;
-        console.warn(`[MediRemind] Port ${PORT} in use. Trying port ${fallback}...`);
-        app.listen(fallback, () => {
-          console.log(`[MediRemind] Running on http://localhost:${fallback}`);
-        });
-      } else {
-        console.error('[MediRemind] Server error:', err);
-      }
-    });
-
   } catch (err) {
-    console.error('[MediRemind] Failed to start server:', err);
+    console.error('Failed to start server:', err);
     process.exit(1);
   }
 }
 
-if (require.main === module) {
-  startServer();
-}
-
-module.exports = app;
+startServer();

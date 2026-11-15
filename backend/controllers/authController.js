@@ -1,7 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const config = require('../config');
-const db = require('../db');
+const User = require('../models/User');
 
 function generateToken(user) {
   return jwt.sign(
@@ -18,7 +18,7 @@ exports.register = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Name, email, and password are required.' });
     }
 
-    const existing = await db.users.findByEmail(email);
+    const existing = await User.findByEmail(email);
     if (existing) {
       return res.status(409).json({ success: false, message: 'An account with this email already exists.' });
     }
@@ -26,7 +26,7 @@ exports.register = async (req, res) => {
     const salt = bcrypt.genSaltSync(10);
     const password_hash = bcrypt.hashSync(password, salt);
 
-    const newUser = await db.users.create({
+    const newUser = await User.create({
       name,
       email,
       password_hash,
@@ -54,31 +54,24 @@ exports.login = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Email and password are required.' });
     }
 
-    const userWithPassword = await db.users.findByEmail(email);
+    const userWithPassword = await User.findByEmail(email);
     if (!userWithPassword) {
       return res.status(401).json({ success: false, message: 'Invalid email or password.' });
     }
 
-    const isMatch = bcrypt.compareSync(password, userWithPassword.password_hash);
-    if (!isMatch) {
+    const match = bcrypt.compareSync(password, userWithPassword.password_hash);
+    if (!match) {
       return res.status(401).json({ success: false, message: 'Invalid email or password.' });
     }
 
-    const user = {
-      id: userWithPassword.id,
-      name: userWithPassword.name,
-      email: userWithPassword.email,
-      role: userWithPassword.role,
-      phone: userWithPassword.phone,
-      created_at: userWithPassword.created_at
-    };
+    const { password_hash, ...safeUser } = userWithPassword;
+    const token = generateToken(safeUser);
 
-    const token = generateToken(user);
     return res.json({
       success: true,
       message: 'Login successful.',
       token,
-      user
+      user: safeUser
     });
   } catch (err) {
     console.error('Login error:', err);
@@ -87,28 +80,14 @@ exports.login = async (req, res) => {
 };
 
 exports.getMe = async (req, res) => {
-  return res.json({
-    success: true,
-    user: req.user
-  });
-};
-
-exports.getDemoAccounts = async (req, res) => {
-  return res.json({
-    success: true,
-    accounts: [
-      {
-        role: 'patient',
-        email: 'patient@mediremind.com',
-        password: 'password123',
-        description: 'Patient account with active prescriptions, schedules & adherence history'
-      },
-      {
-        role: 'caregiver',
-        email: 'caregiver@mediremind.com',
-        password: 'password123',
-        description: 'Caregiver account managing multiple dependents (Grandmother Rosa, Timmy Santos)'
-      }
-    ]
-  });
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found.' });
+    }
+    return res.json({ success: true, user });
+  } catch (err) {
+    console.error('Get profile error:', err);
+    return res.status(500).json({ success: false, message: 'Failed to retrieve profile.' });
+  }
 };

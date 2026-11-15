@@ -1,5 +1,21 @@
 const bcrypt = require('bcryptjs');
-const db = require('./index');
+const dbConfig = require('../config/db');
+const User = require('../models/User');
+const Caregiver = require('../models/Caregiver');
+const Medicine = require('../models/Medicine');
+const Schedule = require('../models/Schedule');
+const DoseLog = require('../models/DoseLog');
+
+const db = {
+  init: () => dbConfig.init(),
+  getDriver: () => dbConfig.getDriver(),
+  getPgPool: () => dbConfig.getPgPool(),
+  users: User,
+  dependents: Caregiver,
+  medicines: Medicine,
+  schedules: Schedule,
+  doseLogs: DoseLog
+};
 
 async function seed() {
   await db.init();

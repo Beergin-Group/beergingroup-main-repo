@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const config = require('../config');
-const db = require('../db');
+const User = require('../models/User');
 
 async function authenticate(req, res, next) {
   const authHeader = req.headers.authorization;
@@ -11,7 +11,7 @@ async function authenticate(req, res, next) {
   const token = authHeader.split(' ')[1];
   try {
     const decoded = jwt.verify(token, config.jwtSecret);
-    const user = await db.users.findById(decoded.id);
+    const user = await User.findById(decoded.id);
     if (!user) {
       return res.status(401).json({ success: false, message: 'Invalid token: User no longer exists.' });
     }

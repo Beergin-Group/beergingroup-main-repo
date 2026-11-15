@@ -1,9 +1,9 @@
-const db = require('../db');
+const Medicine = require('../models/Medicine');
 
 exports.getAll = async (req, res) => {
   try {
     const dependentId = req.query.dependent_id ? parseInt(req.query.dependent_id, 10) : null;
-    const medicines = await db.medicines.findByUser(req.user.id, dependentId);
+    const medicines = await Medicine.findByUser(req.user.id, dependentId);
     return res.json({ success: true, count: medicines.length, data: medicines });
   } catch (err) {
     console.error('Get medicines error:', err);
@@ -14,7 +14,7 @@ exports.getAll = async (req, res) => {
 exports.getById = async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
-    const medicine = await db.medicines.findById(id);
+    const medicine = await Medicine.findById(id);
     if (!medicine || Number(medicine.user_id) !== Number(req.user.id)) {
       return res.status(404).json({ success: false, message: 'Medicine not found.' });
     }
@@ -32,7 +32,7 @@ exports.create = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Medicine name and dosage are required.' });
     }
 
-    const newMed = await db.medicines.create({
+    const newMed = await Medicine.create({
       user_id: req.user.id,
       dependent_id: dependent_id ? parseInt(dependent_id, 10) : null,
       name,
@@ -56,12 +56,12 @@ exports.create = async (req, res) => {
 exports.update = async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
-    const medicine = await db.medicines.findById(id);
-    if (!medicine || Number(medicine.user_id) !== Number(req.user.id)) {
+    const existing = await Medicine.findById(id);
+    if (!existing || Number(existing.user_id) !== Number(req.user.id)) {
       return res.status(404).json({ success: false, message: 'Medicine not found.' });
     }
 
-    const updated = await db.medicines.update(id, req.user.id, req.body);
+    const updated = await Medicine.update(id, req.user.id, req.body);
     return res.json({ success: true, message: 'Medicine updated successfully.', data: updated });
   } catch (err) {
     console.error('Update medicine error:', err);
@@ -72,12 +72,12 @@ exports.update = async (req, res) => {
 exports.delete = async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
-    const medicine = await db.medicines.findById(id);
-    if (!medicine || Number(medicine.user_id) !== Number(req.user.id)) {
+    const existing = await Medicine.findById(id);
+    if (!existing || Number(existing.user_id) !== Number(req.user.id)) {
       return res.status(404).json({ success: false, message: 'Medicine not found.' });
     }
 
-    await db.medicines.delete(id, req.user.id);
+    await Medicine.delete(id, req.user.id);
     return res.json({ success: true, message: 'Medicine deleted successfully.' });
   } catch (err) {
     console.error('Delete medicine error:', err);
@@ -88,15 +88,16 @@ exports.delete = async (req, res) => {
 exports.refill = async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
-    const count = parseInt(req.body.count, 10) || 30;
-    const medicine = await db.medicines.findById(id);
-    if (!medicine || Number(medicine.user_id) !== Number(req.user.id)) {
+    const { amount } = req.body;
+    const refillQty = parseInt(amount, 10) || 30;
+
+    const existing = await Medicine.findById(id);
+    if (!existing || Number(existing.user_id) !== Number(req.user.id)) {
       return res.status(404).json({ success: false, message: 'Medicine not found.' });
     }
 
-    const updatedStock = (medicine.stock_count || 0) + count;
-    const updated = await db.medicines.update(id, req.user.id, { stock_count: updatedStock });
-    return res.json({ success: true, message: `Refilled +${count} units. New stock: ${updated.stock_count}`, data: updated });
+    const updated = await Medicine.refillStock(id, req.user.id, refillQty);
+    return res.json({ success: true, message: `Refilled +${refillQty} units.`, data: updated });
   } catch (err) {
     console.error('Refill medicine error:', err);
     return res.status(500).json({ success: false, message: 'Failed to refill medicine.' });

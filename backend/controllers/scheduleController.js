@@ -1,9 +1,10 @@
-const db = require('../db');
+const Schedule = require('../models/Schedule');
+const Medicine = require('../models/Medicine');
 
 exports.getAll = async (req, res) => {
   try {
     const dependentId = req.query.dependent_id ? parseInt(req.query.dependent_id, 10) : null;
-    const schedules = await db.schedules.findByUser(req.user.id, dependentId);
+    const schedules = await Schedule.findByUser(req.user.id, dependentId);
     return res.json({ success: true, count: schedules.length, data: schedules });
   } catch (err) {
     console.error('Get schedules error:', err);
@@ -14,7 +15,7 @@ exports.getAll = async (req, res) => {
 exports.getById = async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
-    const schedule = await db.schedules.findById(id);
+    const schedule = await Schedule.findById(id);
     if (!schedule || Number(schedule.user_id) !== Number(req.user.id)) {
       return res.status(404).json({ success: false, message: 'Schedule not found.' });
     }
@@ -27,40 +28,30 @@ exports.getById = async (req, res) => {
 
 exports.create = async (req, res) => {
   try {
-    const {
-      medicine_id,
-      frequency_type,
-      frequency_value,
-      dose_times,
-      meal_timing,
-      start_date,
-      end_date,
-      dependent_id
-    } = req.body;
-
-    if (!medicine_id || !dose_times || (Array.isArray(dose_times) && !dose_times.length)) {
+    const { medicine_id, frequency_type, frequency_value, dose_times, meal_timing, start_date, end_date, dependent_id } = req.body;
+    if (!medicine_id || !dose_times || !dose_times.length) {
       return res.status(400).json({ success: false, message: 'Medicine ID and at least one dose time are required.' });
     }
 
-    const medicine = await db.medicines.findById(medicine_id);
+    const medicine = await Medicine.findById(parseInt(medicine_id, 10));
     if (!medicine || Number(medicine.user_id) !== Number(req.user.id)) {
-      return res.status(404).json({ success: false, message: 'Invalid medicine selected.' });
+      return res.status(404).json({ success: false, message: 'Referenced medicine not found.' });
     }
 
-    const newSchedule = await db.schedules.create({
+    const newSchedule = await Schedule.create({
       medicine_id: parseInt(medicine_id, 10),
       user_id: req.user.id,
       dependent_id: dependent_id ? parseInt(dependent_id, 10) : null,
       frequency_type: frequency_type || 'daily',
       frequency_value: frequency_value || '1',
-      dose_times: Array.isArray(dose_times) ? dose_times : [dose_times],
+      dose_times,
       meal_timing: meal_timing || 'no_food_relation',
       start_date: start_date || new Date().toISOString().split('T')[0],
       end_date: end_date || null,
       is_active: true
     });
 
-    return res.status(201).json({ success: true, message: 'Prescription schedule created successfully.', data: newSchedule });
+    return res.status(201).json({ success: true, message: 'Schedule created successfully.', data: newSchedule });
   } catch (err) {
     console.error('Create schedule error:', err);
     return res.status(500).json({ success: false, message: 'Failed to create schedule.' });
@@ -70,12 +61,12 @@ exports.create = async (req, res) => {
 exports.update = async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
-    const schedule = await db.schedules.findById(id);
-    if (!schedule || Number(schedule.user_id) !== Number(req.user.id)) {
+    const existing = await Schedule.findById(id);
+    if (!existing || Number(existing.user_id) !== Number(req.user.id)) {
       return res.status(404).json({ success: false, message: 'Schedule not found.' });
     }
 
-    const updated = await db.schedules.update(id, req.user.id, req.body);
+    const updated = await Schedule.update(id, req.user.id, req.body);
     return res.json({ success: true, message: 'Schedule updated successfully.', data: updated });
   } catch (err) {
     console.error('Update schedule error:', err);
@@ -86,12 +77,12 @@ exports.update = async (req, res) => {
 exports.delete = async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
-    const schedule = await db.schedules.findById(id);
-    if (!schedule || Number(schedule.user_id) !== Number(req.user.id)) {
+    const existing = await Schedule.findById(id);
+    if (!existing || Number(existing.user_id) !== Number(req.user.id)) {
       return res.status(404).json({ success: false, message: 'Schedule not found.' });
     }
 
-    await db.schedules.delete(id, req.user.id);
+    await Schedule.delete(id, req.user.id);
     return res.json({ success: true, message: 'Schedule deleted successfully.' });
   } catch (err) {
     console.error('Delete schedule error:', err);

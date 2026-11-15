@@ -1,8 +1,11 @@
-const db = require('../db');
+const Caregiver = require('../models/Caregiver');
+const Medicine = require('../models/Medicine');
+const Schedule = require('../models/Schedule');
+const DoseLog = require('../models/DoseLog');
 
 exports.getDependents = async (req, res) => {
   try {
-    const dependents = await db.dependents.findByCaregiver(req.user.id);
+    const dependents = await Caregiver.findByCaregiver(req.user.id);
     return res.json({ success: true, count: dependents.length, data: dependents });
   } catch (err) {
     console.error('Get dependents error:', err);
@@ -17,7 +20,7 @@ exports.createDependent = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Dependent name is required.' });
     }
 
-    const dependent = await db.dependents.create({
+    const dependent = await Caregiver.create({
       caregiver_id: req.user.id,
       name,
       relationship: relationship || 'Family Member',
@@ -36,7 +39,7 @@ exports.createDependent = async (req, res) => {
 exports.deleteDependent = async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
-    await db.dependents.delete(id, req.user.id);
+    await Caregiver.delete(id, req.user.id);
     return res.json({ success: true, message: 'Dependent removed successfully.' });
   } catch (err) {
     console.error('Delete dependent error:', err);
@@ -47,25 +50,23 @@ exports.deleteDependent = async (req, res) => {
 exports.getDependentSummary = async (req, res) => {
   try {
     const dependentId = parseInt(req.params.id, 10);
-    const dependent = await db.dependents.findById(dependentId);
+    const dependent = await Caregiver.findById(dependentId);
     if (!dependent || Number(dependent.caregiver_id) !== Number(req.user.id)) {
       return res.status(404).json({ success: false, message: 'Dependent not found.' });
     }
 
-    const medicines = await db.medicines.findByUser(req.user.id, dependentId);
-    const schedules = await db.schedules.findByUser(req.user.id, dependentId);
+    const medicines = await Medicine.findByUser(req.user.id, dependentId);
+    const schedules = await Schedule.findByUser(req.user.id, dependentId);
     const todayStr = new Date().toISOString().split('T')[0];
-    const todayLogs = await db.doseLogs.findToday(req.user.id, todayStr, dependentId);
+    const todayLogs = await DoseLog.findToday(req.user.id, todayStr, dependentId);
 
     return res.json({
       success: true,
-      data: {
-        dependent,
-        total_medicines: medicines.length,
-        total_schedules: schedules.length,
-        today_doses_total: todayLogs.length,
-        today_taken: todayLogs.filter(l => l.status === 'taken').length,
-        today_pending: todayLogs.filter(l => l.status === 'pending' || l.status === 'snoozed').length
+      dependent,
+      stats: {
+        medicines_count: medicines.length,
+        schedules_count: schedules.length,
+        today_doses_logged: todayLogs.length
       }
     });
   } catch (err) {

@@ -6,8 +6,7 @@ const { authenticate } = require('../middleware/auth');
 router.use(authenticate);
 
 router.get('/today', doseLogController.getToday);
-router.post('/', doseLogController.recordDose);
-router.post('/snooze', doseLogController.snooze);
+router.post('/record', doseLogController.record);
 router.get('/history', doseLogController.getHistory);
 
 module.exports = router;
