@@ -1,90 +1,141 @@
-# MediRemind — Cross-Platform Medicine & Prescription Reminder
+# MediRemind — Web System (UCLIS MVC Standard)
 
-**MediRemind** is a cross-platform application designed to help users manage their medication schedules, receive timely reminders, and track their daily medication adherence. It aims to reduce missed or duplicate doses by providing a centralized platform for managing medicines, prescriptions, schedules, and dose history.
+**Course:** Application Development and Emerging Technologies  
+**Instructor:** Mr. Henzon Paul Dionsay  
+**Team:** Beergin  
+**Branch:** `feature/web-system`  
 
-## Project Scope
-
-MediRemind will focus on developing a functional medication management application for patients who take scheduled medications, caregivers, and family members who help manage prescriptions.
-
-The project covers the development of a Flutter-based frontend for mobile, web, and desktop environments, supported by a RESTful API backend built with Node.js and Express and a PostgreSQL database.
-
-The application will support user authentication, medicine management, medication scheduling, local reminders, dose logging, adherence reporting, and caregiver access to linked dependents.
-
-### In-Scope Features
-
-- **User Authentication:** User registration, login, logout, and JWT-based session authentication.
-- **Medicine Management:** Add, view, edit, and delete medicine records, including medicine name, dosage, form, and notes.
-- **Prescription Scheduling:** Create medication schedules based on daily frequency, intervals, or specific days, with start and end dates.
-- **Medication Reminders:** Schedule local notifications for upcoming doses, primarily on mobile devices.
-- **Dose Logging:** Record medication doses as Taken, Skipped, or Snoozed and view dose history.
-- **Adherence Reports:** Display weekly and monthly medication adherence percentages and missed-dose lists.
-- **Caregiver View:** Allow authorized users to view and manage schedules for linked dependents.
-- **Dashboard:** Display today's scheduled doses, the next-dose countdown, and the current adherence streak.
-- **Cross-Platform Support:** Develop the application using Flutter for Android, iOS, web browsers, and desktop environments, subject to platform compatibility and testing.
-
-## Project Objectives
-
-1. Develop a unified medication management application accessible across supported platforms.
-2. Implement a RESTful API for authentication, medicine management, scheduling, and dose tracking.
-3. Use PostgreSQL to store and manage application data.
-4. Provide local medication reminders to help users follow their schedules.
-5. Enable users to monitor their medication history and adherence.
-6. Support caregivers in managing medication schedules for linked dependents.
-7. Apply regular testing and incremental integration throughout development.
-
-## Technology Stack
-
-| Component | Technology |
+| Member | Role |
 |---|---|
-| Frontend | Flutter and Dart |
-| Backend | Node.js and Express.js |
-| Database | PostgreSQL |
-| Authentication | JSON Web Tokens (JWT) and bcrypt |
-| API Testing | Postman |
-| Development Environment | Visual Studio Code |
-| Version Control | Git and GitHub |
-| Notifications | Flutter local notifications package |
-
-## Project Development Approach
-
-The project will use an incremental development approach in which frontend and backend development proceed simultaneously. Features will be developed, integrated, and tested in stages.
-
-The team will use GitHub to manage source code, track individual contributions, and coordinate development. Weekly milestones will be established to monitor progress and ensure that each team member delivers demonstrable work.
-
-## Out of Scope
-
-The following features are excluded from the current project:
-
-- Real-time integration with doctors or pharmacies.
-- Automatic electronic prescription import.
-- Cloud deployment or production hosting.
-- Smartwatch companion application.
-- Drug interaction checking through external medical databases.
-- Payment processing and insurance-related features.
-
-## Target Users
-
-- Patients who take medications on a regular schedule.
-- Caregivers responsible for managing another person's medication.
-- Family members who assist with prescription and medication management.
-
-## Project Status
-
-**Status:** In Development
-
-This project is being developed as an academic software project. Features and supported platforms will be implemented and validated according to the project schedule and available development resources.
-
-## Project Team — Beergin
-
-- **Jerold Sodusta** — Project Manager
-- **Francis John Empil** — Back-End Developer
-- **Jibson Cabilin** — Front-End Developer
-- **Nove Calasang** — Quality Assurance
-
-## Disclaimer
-
-MediRemind is intended to assist with medication scheduling and record-keeping. It does not replace professional medical advice, and users should follow the instructions provided by their healthcare professionals.
+| Jerold Sodusta (`@torpeness-blip`) | Project Manager |
+| Francis John Empil (`@francisjohnempil93-ux`) | Back-End Developer |
+| Jibson Cabilin (`@jizzcabilin-art`) | Front-End Developer |
+| Nove Calasang (`@Nove-Calasang`) | Quality Assurance |
 
 ---
 
-*Developed by Beergin as an academic project.*
+## 🏛️ Architecture Overhaul (UCLIS Alignment)
+
+To comply with the College of Computer Studies (CCS) standards established in the reference project (`UCLIS`):
+1. **Backend (MVC Restructuring - Issue #38):**
+   - Eliminated nested `src/` directory.
+   - Introduced a dedicated `models/` layer (`User.js`, `Medicine.js`, `Schedule.js`, `DoseLog.js`, `Adherence.js`, `Caregiver.js`) separating database queries and business logic from controllers.
+   - Standardized `config/db.js` providing dual-driver compatibility (PostgreSQL with auto-fallback to persistent JSON file storage).
+   - Clean, modular routes mounted via `routes/index.js`.
+   - Dedicated request logger middleware (`middleware/logger.js`).
+
+2. **Frontend (Component Deconstruction - Issue #39):**
+   - Deconstructed previous monolithic files (`app.js`, `index.html`, `styles.css`) into a modern Vite + React SPA architecture.
+   - Reusable UI elements isolated in `src/components/` (`AppShell`, `Modal`, `StatCard`, `StatusBadge`, `PageHeader`, `Spinner`, `DoseCountdown`).
+   - Domain features organized into dedicated views in `src/pages/` (`LoginPage`, `Dashboard`, `Medicines`, `Schedules`, `DoseLogs`, `Adherence`, `Caregiver`, `Profile`).
+   - Global state managed via `src/context/AuthContext.jsx`.
+   - Centralized Axios client with authentication interceptors in `src/services/api.js`.
+
+---
+
+## 📁 Project Structure
+
+```
+mediremind_websystems/
+├── backend/
+│   ├── config/
+│   │   ├── db.js                 ← Database connection pool & driver manager
+│   │   └── index.js              ← Environment configuration
+│   ├── controllers/
+│   │   ├── adherenceController.js
+│   │   ├── authController.js
+│   │   ├── caregiverController.js
+│   │   ├── doseLogController.js
+│   │   ├── medicineController.js
+│   │   └── scheduleController.js
+│   ├── data/
+│   │   ├── mediremind.json       ← Persistent local database
+│   │   ├── schema.sql            ← PostgreSQL DDL schema
+│   │   └── seed.js               ← Seeder script
+│   ├── middleware/
+│   │   ├── auth.js               ← JWT Bearer guard
+│   │   └── logger.js             ← Request & latency logger
+│   ├── models/                   ← MVC Data Model Layer
+│   │   ├── Adherence.js
+│   │   ├── Caregiver.js
+│   │   ├── DoseLog.js
+│   │   ├── Medicine.js
+│   │   ├── Schedule.js
+│   │   └── User.js
+│   ├── routes/
+│   │   ├── adherenceRoutes.js
+│   │   ├── authRoutes.js
+│   │   ├── caregiverRoutes.js
+│   │   ├── doseLogRoutes.js
+│   │   ├── medicineRoutes.js
+│   │   ├── scheduleRoutes.js
+│   │   └── index.js              ← API route aggregator
+│   ├── .env
+│   ├── package.json
+│   └── server.js                 ← Express entry point & static SPA delivery
+│
+├── frontend/
+│   ├── dist/                     ← Production Vite build
+│   ├── src/
+│   │   ├── components/           ← Reusable UI widgets
+│   │   │   ├── AppShell.jsx
+│   │   │   ├── DoseCountdown.jsx
+│   │   │   ├── Modal.jsx
+│   │   │   ├── PageHeader.jsx
+│   │   │   ├── Spinner.jsx
+│   │   │   ├── StatCard.jsx
+│   │   │   └── StatusBadge.jsx
+│   │   ├── context/
+│   │   │   └── AuthContext.jsx   ← Auth & dependent context
+│   │   ├── pages/                ← Modularized screens
+│   │   │   ├── Adherence.jsx
+│   │   │   ├── Caregiver.jsx
+│   │   │   ├── Dashboard.jsx
+│   │   │   ├── DoseLogs.jsx
+│   │   │   ├── LoginPage.jsx
+│   │   │   ├── Medicines.jsx
+│   │   │   ├── Profile.jsx
+│   │   │   └── Schedules.jsx
+│   │   ├── services/
+│   │   │   └── api.js            ← Axios HTTP client
+│   │   ├── App.jsx               ← Protected route router
+│   │   ├── index.css             ← Tailwind design system
+│   │   └── main.jsx
+│   ├── index.html
+│   ├── package.json
+│   ├── postcss.config.js
+│   ├── tailwind.config.js
+│   └── vite.config.js
+│
+├── start.bat                     ← One-click execution launcher
+├── database.sql                  ← Standalone PostgreSQL schema
+└── package.json                  ← Root workspace script runner
+```
+
+---
+
+## 🚀 How to Run
+
+### Method 1: One-Click Launcher (Recommended)
+Double-click `start.bat` in the root folder.  
+It boots the Node.js backend server and automatically opens `http://localhost:5000` in your default browser.
+
+### Method 2: Manual Terminal Commands
+```bash
+# Start backend server (serves both API + built frontend)
+cd backend
+node server.js
+
+# Optional: Run frontend in Vite hot-reload development mode
+cd frontend
+npm run dev
+```
+
+---
+
+## 🔑 Demo Login Accounts
+
+| Role | Email | Password | Access Capabilities |
+|---|---|---|---|
+| **Patient** | `patient@mediremind.com` | `password123` | Self medication management, dose tracking, adherence |
+| **Caregiver** | `caregiver@mediremind.com` | `password123` | Proxy management for elderly parents and dependents |
