@@ -8,7 +8,7 @@
 
 ---
 
-## 📌 Meeting Metadata
+##  Meeting Metadata
 
 | Item | Details |
 | :--- | :--- |
@@ -21,7 +21,7 @@
 
 ---
 
-## 👥 Attendance & Roll Call
+##  Attendance & Roll Call
 
 | Name | Role | Attendance Status | Remarks |
 | :--- | :--- | :---: | :--- |
@@ -34,7 +34,7 @@
 
 ---
 
-## 🎯 Meeting Agenda & Objectives
+##  Meeting Agenda & Objectives
 
 1. **Review & Formal Acceptance of Completed Milestones (Phases 1 & 2):**
    - Verification of the completed Web System, JWT authentication, and PostgreSQL database CRUD operations.
@@ -49,7 +49,7 @@
 
 ---
 
-## 📝 Proceedings & Discussion Details
+##  Proceedings & Discussion Details
 
 ### 1. Call to Order
 The meeting was formally called to order by the Project Manager, Jerold Sodusta, at 2:00 PM. Jerold reiterated the core objective of today's session: finalizing the structured deliverables required by Mr. Henzon Paul Dionsay for progress grading, establishing the official GitHub issue tracking hierarchy, and kicking off the cross-platform expansion.
@@ -125,7 +125,7 @@ The meeting was formally called to order by the Project Manager, Jerold Sodusta,
 
 ---
 
-## 📌 Action Items & Responsibility Matrix
+##  Action Items & Responsibility Matrix
 
 | # | Action Item / Deliverable | Assignee | Priority | Target Completion Date | Success Criteria |
 | :-: | :--- | :--- | :---: | :---: | :--- |
@@ -140,7 +140,7 @@ The meeting was formally called to order by the Project Manager, Jerold Sodusta,
 
 ---
 
-## ⚠️ Identified Risks & Mitigation Strategies
+##  Identified Risks & Mitigation Strategies
 
 1. **Risk:** VS Code Dev Tunnel URL changes whenever the developer restarts the tunnel session.
    - *Mitigation:* Francis will document how to configure a persistent tunnel name or update the base URL dynamically in `api_service.dart` without recompiling by using a runtime config setting.
@@ -151,7 +151,7 @@ The meeting was formally called to order by the Project Manager, Jerold Sodusta,
 
 ---
 
-## 📢 Adjournment & Next Meeting Schedule
+##  Adjournment & Next Meeting Schedule
 
 - Having completed all agenda items, the meeting was adjourned at **4:30 PM**.
 - **Next Group Session:**
@@ -161,7 +161,7 @@ The meeting was formally called to order by the Project Manager, Jerold Sodusta,
 
 ---
 
-## ✍️ Formal Review & Approval Signatures
+##  Formal Review & Approval Signatures
 
 *We hereby certify that these minutes represent a true, accurate, and faithful record of the discussions, agreements, and decisions reached during the project meeting held on November 15, 2026.*
 
@@ -181,7 +181,7 @@ The meeting was formally called to order by the Project Manager, Jerold Sodusta,
 
 ---
 
-### 👨‍🏫 Instructor Acknowledgment & Evaluation
+###  Instructor Acknowledgment & Evaluation
 
 **Course Instructor:** Mr. Henzon Paul Dionsay  
 **Status:** [ ] Acknowledged & Approved &nbsp;&nbsp;&nbsp;&nbsp; [ ] For Revision  
