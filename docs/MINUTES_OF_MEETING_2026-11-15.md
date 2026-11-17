@@ -14,7 +14,7 @@
 | :--- | :--- |
 | **Date:** | Sunday, November 15, 2026 |
 | **Time:** | 2:00 PM – 4:30 PM (PST / GMT+8) |
-| **Venue / Medium:** | Physical Group Meeting |
+| **Venue / Medium:** | Face to Face Group Meeting |
 | **Meeting Type:** | Sprint Review (Phases 1–2 Sign-Off) & Phase 3 Sprint Planning / GitHub Roadmap Alignment |
 | **Presiding Officer:** | Jerold Sodusta (Project Manager / Lead) |
 | **Minutes Scribe:** | Nove Calasang (QA & Technical Documentation) |
