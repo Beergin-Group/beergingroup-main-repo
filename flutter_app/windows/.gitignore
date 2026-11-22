@@ -1,0 +1,14 @@
+# Flutter Windows Desktop gitignore
+flutter/ephemeral/
+.cxx/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.vcxproj
+*.vcxproj.filters
+*.sln
+*.dir/
+Debug/
+Release/
+Profile/
