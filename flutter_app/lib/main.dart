@@ -6,6 +6,8 @@ import 'package:window_manager/window_manager.dart';
 
 import 'services/auth_service.dart';
 import 'services/medicine_service.dart';
+import 'layouts/responsive_layout.dart';
+import 'layouts/mobile_scaffold.dart';
 import 'layouts/desktop_scaffold.dart';
 import 'screens/login_screen.dart';
 
@@ -82,7 +84,12 @@ class MediRemindApp extends StatelessWidget {
       ),
       home: Consumer<AuthService>(
         builder: (context, auth, _) {
-          return auth.isAuthenticated ? const DesktopScaffold() : const LoginScreen();
+          return auth.isAuthenticated
+              ? const ResponsiveLayout(
+                  mobileScaffold: MobileScaffold(),
+                  desktopScaffold: DesktopScaffold(),
+                )
+              : const LoginScreen();
         },
       ),
     );
