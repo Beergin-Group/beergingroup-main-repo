@@ -14,7 +14,7 @@
 
 ---
 
-## 🏛️ Architecture Overhaul (UCLIS Alignment)
+##  Architecture Overhaul (UCLIS Alignment)
 
 To comply with the College of Computer Studies (CCS) standards established in the reference project (`UCLIS`):
 1. **Backend (MVC Restructuring - Issue #38):**
@@ -33,7 +33,7 @@ To comply with the College of Computer Studies (CCS) standards established in th
 
 ---
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 mediremind_websystems/
@@ -114,7 +114,7 @@ mediremind_websystems/
 
 ---
 
-## 🚀 How to Run
+##  How to Run
 
 ### Method 1: One-Click Launcher (Recommended)
 Double-click `start.bat` in the root folder.  
@@ -133,7 +133,7 @@ npm run dev
 
 ---
 
-## 🔑 Demo Login Accounts
+##  Demo Login Accounts
 
 | Role | Email | Password | Access Capabilities |
 |---|---|---|---|
