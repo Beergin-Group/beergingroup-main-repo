@@ -135,16 +135,33 @@ exports.record = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Medicine not found.' });
     }
 
-    const log = await DoseLog.recordDose({
-      schedule_id: schedule_id ? parseInt(schedule_id, 10) : null,
-      medicine_id: parseInt(medicine_id, 10),
-      user_id: req.user.id,
-      dependent_id: dependent_id ? parseInt(dependent_id, 10) : null,
-      scheduled_time,
-      status,
-      recorded_at: new Date().toISOString(),
-      notes: notes || ''
-    });
+    let log;
+    try {
+      log = await DoseLog.recordDose({
+        schedule_id: schedule_id ? parseInt(schedule_id, 10) : null,
+        medicine_id: parseInt(medicine_id, 10),
+        user_id: req.user.id,
+        dependent_id: dependent_id ? parseInt(dependent_id, 10) : null,
+        scheduled_time,
+        status,
+        recorded_at: new Date().toISOString(),
+        notes: notes || ''
+      });
+    } catch (guardErr) {
+      if (guardErr.code === 'STATUS_LOCKED' || guardErr.message?.includes('Status guard')) {
+        return res.status(400).json({
+          success: false,
+          message: 'Status guard locked: This dose has already been marked as skipped and cannot be changed to taken.'
+        });
+      }
+      if (guardErr.code === 'EARLY_DOSE_GUARD' || guardErr.message?.includes('EARLY_DOSE_GUARD')) {
+        return res.status(400).json({
+          success: false,
+          message: 'Dose cannot be marked as taken earlier than its scheduled time window.'
+        });
+      }
+      throw guardErr;
+    }
 
     if (status === 'taken') {
       await Medicine.decrementStock(medicine.id, 1);
@@ -164,12 +181,13 @@ exports.record = async (req, res) => {
 exports.getHistory = async (req, res) => {
   try {
     const dependentId = req.query.dependent_id ? parseInt(req.query.dependent_id, 10) : null;
-    const { start_date, end_date } = req.query;
+    const { start_date, end_date, status } = req.query;
 
     const history = await DoseLog.getHistory(req.user.id, {
       startDate: start_date,
       endDate: end_date,
-      dependentId
+      dependentId,
+      status: status || null
     });
 
     return res.json({ success: true, count: history.length, data: history });

@@ -11,6 +11,9 @@ function generateToken(user) {
   );
 }
 
+// RFC 5322 standard compliant email regex
+const EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
+
 exports.register = async (req, res) => {
   try {
     const { name, email, password, role, phone } = req.body;
@@ -18,7 +21,20 @@ exports.register = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Name, email, and password are required.' });
     }
 
-    const existing = await User.findByEmail(email);
+    const cleanEmail = email.trim().toLowerCase();
+    if (!EMAIL_REGEX.test(cleanEmail)) {
+      return res.status(400).json({ success: false, message: 'Invalid email address format.' });
+    }
+
+    // Password length constraints: min 8, max 15 (as mandated by Issue #53)
+    if (password.length < 8 || password.length > 15) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be between 8 and 15 characters.'
+      });
+    }
+
+    const existing = await User.findByEmail(cleanEmail);
     if (existing) {
       return res.status(409).json({ success: false, message: 'An account with this email already exists.' });
     }
@@ -27,11 +43,11 @@ exports.register = async (req, res) => {
     const password_hash = bcrypt.hashSync(password, salt);
 
     const newUser = await User.create({
-      name,
-      email,
+      name: name.trim(),
+      email: cleanEmail,
       password_hash,
       role: role || 'patient',
-      phone: phone || ''
+      phone: phone ? phone.trim() : ''
     });
 
     const token = generateToken(newUser);
@@ -54,7 +70,20 @@ exports.login = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Email and password are required.' });
     }
 
-    const userWithPassword = await User.findByEmail(email);
+    const cleanEmail = email.trim().toLowerCase();
+    if (!EMAIL_REGEX.test(cleanEmail)) {
+      return res.status(400).json({ success: false, message: 'Invalid email address format.' });
+    }
+
+    // Login password length constraint check
+    if (password.length < 8 || password.length > 15) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be between 8 and 15 characters.'
+      });
+    }
+
+    const userWithPassword = await User.findByEmail(cleanEmail);
     if (!userWithPassword) {
       return res.status(401).json({ success: false, message: 'Invalid email or password.' });
     }

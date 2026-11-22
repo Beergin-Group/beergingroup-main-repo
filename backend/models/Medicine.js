@@ -1,6 +1,10 @@
 const db = require('../config/db');
 
+const VALID_FORMS = ['tablet', 'capsule', 'syrup', 'injection', 'drops', 'inhaler', 'topical', 'powder', 'other'];
+
 const Medicine = {
+  VALID_FORMS,
+
   async findByUser(userId, dependentId = null) {
     if (db.getDriver() === 'postgres') {
       let q = 'SELECT * FROM medicines WHERE user_id = $1';
@@ -28,7 +32,50 @@ const Medicine = {
     return db.getStore().medicines.find(m => Number(m.id) === Number(id)) || null;
   },
 
+  async findDuplicate(userId, dependentId, { name, dosage, form, color }, excludeId = null) {
+    const cleanName = (name || '').trim().toLowerCase();
+    const cleanDosage = (dosage || '').trim().toLowerCase();
+    const cleanForm = (form || 'tablet').trim().toLowerCase();
+    const cleanColor = (color || '#0d9488').trim().toLowerCase();
+
+    if (db.getDriver() === 'postgres') {
+      let q = `
+        SELECT * FROM medicines 
+        WHERE user_id = $1 
+          AND (dependent_id IS NOT DISTINCT FROM $2)
+          AND LOWER(TRIM(name)) = $3
+          AND LOWER(TRIM(dosage)) = $4
+          AND LOWER(form) = $5
+          AND LOWER(color) = $6
+      `;
+      const params = [userId, dependentId || null, cleanName, cleanDosage, cleanForm, cleanColor];
+      if (excludeId) {
+        q += ' AND id != $7';
+        params.push(excludeId);
+      }
+      const res = await db.getPgPool().query(q, params);
+      return res.rows[0] || null;
+    }
+
+    const store = db.getStore();
+    return store.medicines.find(m => {
+      if (Number(m.user_id) !== Number(userId)) return false;
+      const mDepId = m.dependent_id ? Number(m.dependent_id) : null;
+      const targetDepId = dependentId ? Number(dependentId) : null;
+      if (mDepId !== targetDepId) return false;
+      if (excludeId && Number(m.id) === Number(excludeId)) return false;
+
+      return (
+        m.name.trim().toLowerCase() === cleanName &&
+        m.dosage.trim().toLowerCase() === cleanDosage &&
+        (m.form || 'tablet').trim().toLowerCase() === cleanForm &&
+        (m.color || '#0d9488').trim().toLowerCase() === cleanColor
+      );
+    }) || null;
+  },
+
   async create(med) {
+    const formVal = VALID_FORMS.includes(med.form) ? med.form : 'tablet';
     if (db.getDriver() === 'postgres') {
       const res = await db.getPgPool().query(
         `INSERT INTO medicines (user_id, dependent_id, name, dosage, form, instructions, stock_count, low_stock_threshold, color, shape, icon)
@@ -36,9 +83,9 @@ const Medicine = {
         [
           med.user_id,
           med.dependent_id || null,
-          med.name,
-          med.dosage,
-          med.form || 'tablet',
+          med.name.trim(),
+          med.dosage.trim(),
+          formVal,
           med.instructions || '',
           med.stock_count !== undefined ? Number(med.stock_count) : 30,
           med.low_stock_threshold !== undefined ? Number(med.low_stock_threshold) : 5,
@@ -55,9 +102,9 @@ const Medicine = {
       id,
       user_id: Number(med.user_id),
       dependent_id: med.dependent_id ? Number(med.dependent_id) : null,
-      name: med.name,
-      dosage: med.dosage,
-      form: med.form || 'tablet',
+      name: med.name.trim(),
+      dosage: med.dosage.trim(),
+      form: formVal,
       instructions: med.instructions || '',
       stock_count: med.stock_count !== undefined ? Number(med.stock_count) : 30,
       low_stock_threshold: med.low_stock_threshold !== undefined ? Number(med.low_stock_threshold) : 5,
@@ -72,6 +119,9 @@ const Medicine = {
   },
 
   async update(id, userId, updates) {
+    if (updates.form && !VALID_FORMS.includes(updates.form)) {
+      updates.form = 'tablet';
+    }
     if (db.getDriver() === 'postgres') {
       const fields = [];
       const values = [];

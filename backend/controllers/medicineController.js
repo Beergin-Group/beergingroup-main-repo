@@ -28,20 +28,39 @@ exports.getById = async (req, res) => {
 exports.create = async (req, res) => {
   try {
     const { name, dosage, form, instructions, stock_count, low_stock_threshold, color, shape, icon, dependent_id } = req.body;
-    if (!name || !dosage) {
+    if (!name || !name.trim() || !dosage || !dosage.trim()) {
       return res.status(400).json({ success: false, message: 'Medicine name and dosage are required.' });
+    }
+
+    const cleanForm = (form || 'tablet').toLowerCase();
+    const cleanColor = (color || '#0d9488').toLowerCase();
+    const depId = dependent_id ? parseInt(dependent_id, 10) : null;
+
+    // Check for exact duplicate under same user and dependent
+    const duplicate = await Medicine.findDuplicate(req.user.id, depId, {
+      name,
+      dosage,
+      form: cleanForm,
+      color: cleanColor
+    });
+
+    if (duplicate) {
+      return res.status(409).json({
+        success: false,
+        message: 'A medicine with identical name, dosage, form, and color already exists.'
+      });
     }
 
     const newMed = await Medicine.create({
       user_id: req.user.id,
-      dependent_id: dependent_id ? parseInt(dependent_id, 10) : null,
-      name,
-      dosage,
-      form: form || 'tablet',
+      dependent_id: depId,
+      name: name.trim(),
+      dosage: dosage.trim(),
+      form: cleanForm,
       instructions: instructions || '',
       stock_count: stock_count !== undefined ? parseInt(stock_count, 10) : 30,
       low_stock_threshold: low_stock_threshold !== undefined ? parseInt(low_stock_threshold, 10) : 5,
-      color: color || '#0d9488',
+      color: cleanColor,
       shape: shape || 'round',
       icon: icon || 'pill'
     });
@@ -49,6 +68,9 @@ exports.create = async (req, res) => {
     return res.status(201).json({ success: true, message: 'Medicine added successfully.', data: newMed });
   } catch (err) {
     console.error('Create medicine error:', err);
+    if (err.code === '23505' || err.message?.includes('already exists')) {
+      return res.status(409).json({ success: false, message: 'A medicine with identical parameters already exists.' });
+    }
     return res.status(500).json({ success: false, message: 'Failed to add medicine.' });
   }
 };
@@ -61,10 +83,34 @@ exports.update = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Medicine not found.' });
     }
 
+    const { name, dosage, form, instructions, stock_count, low_stock_threshold, color, shape, icon } = req.body;
+
+    const checkName = name ? name.trim() : existing.name;
+    const checkDosage = dosage ? dosage.trim() : existing.dosage;
+    const checkForm = form ? form.toLowerCase() : existing.form;
+    const checkColor = color ? color.toLowerCase() : existing.color;
+
+    const duplicate = await Medicine.findDuplicate(req.user.id, existing.dependent_id, {
+      name: checkName,
+      dosage: checkDosage,
+      form: checkForm,
+      color: checkColor
+    }, id);
+
+    if (duplicate) {
+      return res.status(409).json({
+        success: false,
+        message: 'Another medicine with identical name, dosage, form, and color already exists.'
+      });
+    }
+
     const updated = await Medicine.update(id, req.user.id, req.body);
     return res.json({ success: true, message: 'Medicine updated successfully.', data: updated });
   } catch (err) {
     console.error('Update medicine error:', err);
+    if (err.code === '23505' || err.message?.includes('already exists')) {
+      return res.status(409).json({ success: false, message: 'A medicine with identical parameters already exists.' });
+    }
     return res.status(500).json({ success: false, message: 'Failed to update medicine.' });
   }
 };
