@@ -1,4 +1,4 @@
-# MediRemind — Web System (UCLIS MVC Standard)
+# MediRemind — Web System 
 
 **Course:** Application Development and Emerging Technologies  
 **Instructor:** Mr. Henzon Paul Dionsay  
