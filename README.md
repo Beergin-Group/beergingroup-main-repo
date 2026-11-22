@@ -14,7 +14,7 @@
 
 ---
 
-##  Architecture Overhaul (UCLIS Alignment)
+##  Architecture Overhaul 
 
 To comply with the College of Computer Studies (CCS) standards established in the reference project (`UCLIS`):
 1. **Backend (MVC Restructuring - Issue #38):**
