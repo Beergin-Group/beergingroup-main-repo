@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
+import '../services/medicine_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -22,12 +23,41 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _submit() {
+  void _fillAccount(String email, String password) {
+    setState(() {
+      _emailController.text = email;
+      _passwordController.text = password;
+    });
+  }
+
+  void _submit() async {
     if (_formKey.currentState?.validate() ?? false) {
-      context.read<AuthService>().login(
+      final success = await context.read<AuthService>().login(
             _emailController.text.trim(),
             _passwordController.text.trim(),
           );
+
+      if (!mounted) return;
+
+      if (success) {
+        // Refresh medicine catalog on successful login
+        context.read<MedicineService>().fetchMedicines();
+      } else {
+        final err = context.read<AuthService>().errorMessage ?? 'Login failed.';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.error_outline_rounded, color: Colors.white, size: 20),
+                const SizedBox(width: 10),
+                Expanded(child: Text(err)),
+              ],
+            ),
+            backgroundColor: const Color(0xFFDC2626),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
   }
 
@@ -39,7 +69,7 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: const Color(0xFFF8FAFC),
       body: Center(
         child: Container(
-          width: 440,
+          width: 460,
           padding: const EdgeInsets.all(36),
           decoration: BoxDecoration(
             color: Colors.white,
@@ -83,13 +113,59 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: 4),
                       const Text(
-                        'Sign in to sync prescriptions & schedules',
+                        'Connect desktop client to localhost:5000',
                         style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 28),
+                const SizedBox(height: 20),
+
+                // Quick Demo Accounts Fill
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Demo Accounts:',
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF475569)),
+                      ),
+                      Row(
+                        children: [
+                          InkWell(
+                            onTap: () => _fillAccount('patient@mediremind.com', 'password123'),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFCCFBF1),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: const Text('Patient', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF0D9488))),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          InkWell(
+                            onTap: () => _fillAccount('caregiver@mediremind.com', 'password123'),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFEDE9FE),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: const Text('Caregiver', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF7C3AED))),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
 
                 if (authService.errorMessage != null)
                   Container(
@@ -98,10 +174,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     decoration: BoxDecoration(
                       color: const Color(0xFFFEE2E2),
                       borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFFFCA5A5)),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.error_outline, color: Color(0xFFDC2626), size: 18),
+                        const Icon(Icons.error_outline_rounded, color: Color(0xFFDC2626), size: 18),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(

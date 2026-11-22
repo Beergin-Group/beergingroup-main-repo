@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 
 class ApiService {
   // Singleton pattern
@@ -7,7 +9,7 @@ class ApiService {
   factory ApiService() => _instance;
   ApiService._internal();
 
-  // Environment-aware Base URL
+  // Environment-aware Base URL targeting http://localhost:5000/api
   static String get baseUrl {
     if (kIsWeb) {
       return 'http://localhost:5000/api';
@@ -35,5 +37,20 @@ class ApiService {
       headers['Authorization'] = 'Bearer $authToken';
     }
     return headers;
+  }
+
+  /// Pings http://localhost:5000/api/health to verify connectivity & DB driver status
+  static Future<Map<String, dynamic>?> checkHealth() async {
+    try {
+      final res = await http
+          .get(Uri.parse('$baseUrl/health'))
+          .timeout(const Duration(seconds: 3));
+      if (res.statusCode == 200) {
+        return jsonDecode(res.body) as Map<String, dynamic>;
+      }
+    } catch (e) {
+      debugPrint('[ApiService] Health check failed: $e');
+    }
+    return null;
   }
 }

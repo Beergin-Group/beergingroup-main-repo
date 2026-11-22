@@ -9,12 +9,16 @@ class MedicineService extends ChangeNotifier {
   List<Medicine> _medicines = [];
   List<Schedule> _schedules = [];
   bool _isLoading = false;
+  String? _lastError;
+  bool _isConnectedToBackend = false;
   String _searchQuery = '';
   String _selectedForm = 'All';
 
   List<Medicine> get medicines => _medicines;
   List<Schedule> get schedules => _schedules;
   bool get isLoading => _isLoading;
+  String? get lastError => _lastError;
+  bool get isConnectedToBackend => _isConnectedToBackend;
   String get searchQuery => _searchQuery;
   String get selectedForm => _selectedForm;
 
@@ -49,55 +53,43 @@ class MedicineService extends ChangeNotifier {
     _medicines = [
       const Medicine(
         id: 1,
-        name: 'Amoxicillin Trihydrate',
-        dosage: '500mg',
-        form: 'Capsule',
-        colorTag: '#0D9488',
-        instructions: 'Take 1 capsule after meals with a full glass of water',
-        stockCount: 18,
-        lowStockThreshold: 6,
+        name: 'Metformin',
+        dosage: '500 mg',
+        form: 'Tablet',
+        colorTag: '#0284c7',
+        instructions: 'Take 1 tablet after meals with water',
+        stockCount: 36,
+        lowStockThreshold: 10,
       ),
       const Medicine(
         id: 2,
-        name: 'Metformin HCl',
-        dosage: '850mg',
-        form: 'Tablet',
-        colorTag: '#0284C7',
-        instructions: 'Take with evening meal to control blood glucose',
-        stockCount: 4, // Low stock trigger
-        lowStockThreshold: 5,
-      ),
-      const Medicine(
-        id: 3,
         name: 'Lisinopril',
-        dosage: '10mg',
+        dosage: '10 mg',
         form: 'Tablet',
-        colorTag: '#10B981',
-        instructions: 'Take every morning at 08:00 AM for hypertension',
-        stockCount: 26,
+        colorTag: '#10b981',
+        instructions: 'Take every morning at 08:00 AM for blood pressure',
+        stockCount: 22,
         lowStockThreshold: 7,
       ),
       const Medicine(
-        id: 4,
-        name: 'Ventolin Inhaler',
-        dosage: '100mcg',
-        form: 'Inhaler',
-        colorTag: '#8B5CF6',
-        instructions: '2 puffs as needed for bronchospasm relief',
-        stockCount: 2, // Low stock trigger
-        lowStockThreshold: 3,
-        isPrn: true,
+        id: 3,
+        name: 'Atorvastatin',
+        dosage: '20 mg',
+        form: 'Tablet',
+        colorTag: '#8b5cf6',
+        instructions: 'Take with evening meal to manage cholesterol',
+        stockCount: 14,
+        lowStockThreshold: 5,
       ),
       const Medicine(
-        id: 5,
-        name: 'Paracetamol',
-        dosage: '500mg',
-        form: 'Tablet',
-        colorTag: '#F59E0B',
-        instructions: 'Take every 4-6 hours for fever or mild pain',
-        stockCount: 20,
-        lowStockThreshold: 5,
-        isPrn: true,
+        id: 4,
+        name: 'Vitamin D3',
+        dosage: '1000 IU',
+        form: 'Capsule',
+        colorTag: '#f59e0b',
+        instructions: 'Take once daily with breakfast for bone health',
+        stockCount: 48,
+        lowStockThreshold: 10,
       ),
     ];
 
@@ -105,41 +97,41 @@ class MedicineService extends ChangeNotifier {
       const Schedule(
         id: 101,
         medicineId: 1,
-        medicineName: 'Amoxicillin Trihydrate',
-        dosage: '500mg',
+        medicineName: 'Metformin',
+        dosage: '500 mg',
         doseTime: '08:00 AM',
         status: 'taken',
       ),
       const Schedule(
         id: 102,
-        medicineId: 3,
+        medicineId: 2,
         medicineName: 'Lisinopril',
-        dosage: '10mg',
+        dosage: '10 mg',
         doseTime: '08:00 AM',
         status: 'taken',
       ),
       const Schedule(
         id: 103,
         medicineId: 1,
-        medicineName: 'Amoxicillin Trihydrate',
-        dosage: '500mg',
+        medicineName: 'Metformin',
+        dosage: '500 mg',
         doseTime: '02:00 PM',
         status: 'pending',
       ),
       const Schedule(
         id: 104,
-        medicineId: 2,
-        medicineName: 'Metformin HCl',
-        dosage: '850mg',
+        medicineId: 3,
+        medicineName: 'Atorvastatin',
+        dosage: '20 mg',
         doseTime: '07:00 PM',
         status: 'pending',
       ),
       const Schedule(
         id: 105,
-        medicineId: 1,
-        medicineName: 'Amoxicillin Trihydrate',
-        dosage: '500mg',
-        doseTime: '09:00 PM',
+        medicineId: 4,
+        medicineName: 'Vitamin D3',
+        dosage: '1000 IU',
+        doseTime: '09:00 AM',
         status: 'pending',
       ),
     ];
@@ -155,8 +147,10 @@ class MedicineService extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> fetchMedicines() async {
+  /// [READ] Fetches all medicines directly from GET /api/medicines
+  Future<bool> fetchMedicines() async {
     _isLoading = true;
+    _lastError = null;
     notifyListeners();
 
     try {
@@ -165,79 +159,190 @@ class MedicineService extends ChangeNotifier {
             Uri.parse('${ApiService.baseUrl}/medicines'),
             headers: ApiService.defaultHeaders,
           )
-          .timeout(const Duration(seconds: 3));
+          .timeout(const Duration(seconds: 4));
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
-        _medicines = data.map((json) => Medicine.fromJson(json)).toList();
+        final dynamic decoded = jsonDecode(response.body);
+        final List<dynamic> list = (decoded is Map && decoded['data'] is List)
+            ? decoded['data']
+            : (decoded is List ? decoded : []);
+
+        _medicines = list
+            .map((json) => Medicine.fromJson(json as Map<String, dynamic>))
+            .toList();
+        _isConnectedToBackend = true;
+        _lastError = null;
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        _lastError = 'Backend returned HTTP ${response.statusCode} while loading medicines.';
       }
-    } catch (_) {
-      // Retain offline default seed
+    } catch (e) {
+      _isConnectedToBackend = false;
+      _lastError = 'Network error: Cannot reach http://localhost:5000/api/medicines.';
+      debugPrint('[MedicineService] fetchMedicines error: $e');
     }
 
     _isLoading = false;
     notifyListeners();
+    return false;
   }
 
-  Future<void> addMedicine(Medicine medicine) async {
-    final newId = DateTime.now().millisecondsSinceEpoch % 10000;
-    final createdMed = medicine.copyWith(id: newId);
-    _medicines.insert(0, createdMed);
+  /// [CREATE] Inserts a new prescription via POST /api/medicines and saves to PostgreSQL.
+  Future<bool> addMedicine(Medicine medicine) async {
+    _isLoading = true;
+    _lastError = null;
     notifyListeners();
 
     try {
-      await http.post(
-        Uri.parse('${ApiService.baseUrl}/medicines'),
-        headers: ApiService.defaultHeaders,
-        body: jsonEncode(createdMed.toJson()),
-      );
-    } catch (_) {}
-  }
+      final payload = medicine.toJson(includeId: false);
+      final response = await http
+          .post(
+            Uri.parse('${ApiService.baseUrl}/medicines'),
+            headers: ApiService.defaultHeaders,
+            body: jsonEncode(payload),
+          )
+          .timeout(const Duration(seconds: 5));
 
-  Future<void> updateMedicine(Medicine updated) async {
-    final index = _medicines.indexWhere((m) => m.id == updated.id);
-    if (index != -1) {
-      _medicines[index] = updated;
-      notifyListeners();
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+        final rawMed = decoded['data'] != null
+            ? decoded['data'] as Map<String, dynamic>
+            : payload;
+        final persisted = Medicine.fromJson(rawMed);
 
-      try {
-        await http.put(
-          Uri.parse('${ApiService.baseUrl}/medicines/${updated.id}'),
-          headers: ApiService.defaultHeaders,
-          body: jsonEncode(updated.toJson()),
-        );
-      } catch (_) {}
+        _medicines.insert(0, persisted);
+        _isConnectedToBackend = true;
+        _lastError = null;
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        final decoded = jsonDecode(response.body);
+        _lastError = decoded['message'] ?? 'Failed to create prescription (HTTP ${response.statusCode}).';
+      }
+    } catch (e) {
+      _isConnectedToBackend = false;
+      _lastError = 'Network error: Cannot connect to localhost:5000 to save prescription.';
+      debugPrint('[MedicineService] addMedicine error: $e');
     }
+
+    _isLoading = false;
+    notifyListeners();
+    return false;
   }
 
-  Future<void> deleteMedicine(int id) async {
-    _medicines.removeWhere((m) => m.id == id);
-    _schedules.removeWhere((s) => s.medicineId == id);
+  /// [UPDATE] Modifies prescription details via PUT /api/medicines/:id in PostgreSQL.
+  Future<bool> updateMedicine(Medicine updated) async {
+    _isLoading = true;
+    _lastError = null;
     notifyListeners();
 
     try {
-      await http.delete(
-        Uri.parse('${ApiService.baseUrl}/medicines/$id'),
-        headers: ApiService.defaultHeaders,
-      );
-    } catch (_) {}
+      final payload = updated.toJson(includeId: false);
+      final response = await http
+          .put(
+            Uri.parse('${ApiService.baseUrl}/medicines/${updated.id}'),
+            headers: ApiService.defaultHeaders,
+            body: jsonEncode(payload),
+          )
+          .timeout(const Duration(seconds: 5));
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+        final rawMed = decoded['data'] != null
+            ? decoded['data'] as Map<String, dynamic>
+            : payload;
+        final persisted = Medicine.fromJson(rawMed);
+
+        final index = _medicines.indexWhere((m) => m.id == updated.id);
+        if (index != -1) {
+          _medicines[index] = persisted;
+        }
+
+        _isConnectedToBackend = true;
+        _lastError = null;
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        final decoded = jsonDecode(response.body);
+        _lastError = decoded['message'] ?? 'Failed to update prescription (HTTP ${response.statusCode}).';
+      }
+    } catch (e) {
+      _isConnectedToBackend = false;
+      _lastError = 'Network error: Cannot connect to localhost:5000 to update prescription.';
+      debugPrint('[MedicineService] updateMedicine error: $e');
+    }
+
+    _isLoading = false;
+    notifyListeners();
+    return false;
   }
 
-  Future<void> refillMedicine(int id, {int amount = 30}) async {
-    final index = _medicines.indexWhere((m) => m.id == id);
-    if (index != -1) {
-      final current = _medicines[index];
-      _medicines[index] = current.copyWith(stockCount: current.stockCount + amount);
-      notifyListeners();
+  /// [DELETE] Removes a prescription via DELETE /api/medicines/:id in PostgreSQL.
+  Future<bool> deleteMedicine(int id) async {
+    _isLoading = true;
+    _lastError = null;
+    notifyListeners();
 
-      try {
-        await http.post(
-          Uri.parse('${ApiService.baseUrl}/medicines/$id/refill'),
-          headers: ApiService.defaultHeaders,
-          body: jsonEncode({'amount': amount}),
-        );
-      } catch (_) {}
+    try {
+      final response = await http
+          .delete(
+            Uri.parse('${ApiService.baseUrl}/medicines/$id'),
+            headers: ApiService.defaultHeaders,
+          )
+          .timeout(const Duration(seconds: 5));
+
+      if (response.statusCode == 200) {
+        _medicines.removeWhere((m) => m.id == id);
+        _schedules.removeWhere((s) => s.medicineId == id);
+        _isConnectedToBackend = true;
+        _lastError = null;
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        final decoded = jsonDecode(response.body);
+        _lastError = decoded['message'] ?? 'Failed to delete prescription (HTTP ${response.statusCode}).';
+      }
+    } catch (e) {
+      _isConnectedToBackend = false;
+      _lastError = 'Network error: Cannot connect to localhost:5000 to delete prescription.';
+      debugPrint('[MedicineService] deleteMedicine error: $e');
     }
+
+    _isLoading = false;
+    notifyListeners();
+    return false;
+  }
+
+  /// [REFILL] Increments prescription stock via POST /api/medicines/:id/refill.
+  Future<bool> refillMedicine(int id, {int amount = 30}) async {
+    try {
+      final response = await http
+          .post(
+            Uri.parse('${ApiService.baseUrl}/medicines/$id/refill'),
+            headers: ApiService.defaultHeaders,
+            body: jsonEncode({'amount': amount}),
+          )
+          .timeout(const Duration(seconds: 4));
+
+      if (response.statusCode == 200) {
+        final index = _medicines.indexWhere((m) => m.id == id);
+        if (index != -1) {
+          final current = _medicines[index];
+          _medicines[index] = current.copyWith(stockCount: current.stockCount + amount);
+        }
+        _isConnectedToBackend = true;
+        notifyListeners();
+        return true;
+      }
+    } catch (e) {
+      debugPrint('[MedicineService] refillMedicine error: $e');
+    }
+    return false;
   }
 
   void markDoseStatus(int scheduleId, String status) {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import '../services/api_service.dart';
+import '../services/medicine_service.dart';
 import '../screens/desktop/desktop_dashboard_screen.dart';
 import '../screens/desktop/desktop_medicines_screen.dart';
 import '../screens/desktop/desktop_schedules_screen.dart';
@@ -50,6 +51,8 @@ class _DesktopScaffoldState extends State<DesktopScaffold> {
   @override
   Widget build(BuildContext context) {
     final authService = context.watch<AuthService>();
+    final medService = context.watch<MedicineService>();
+    final isOnline = authService.isBackendConnected || medService.isConnectedToBackend;
     final user = authService.currentUser;
 
     final List<Widget> pages = [
@@ -190,8 +193,11 @@ class _DesktopScaffoldState extends State<DesktopScaffold> {
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFFF1F5F9),
+                                        color: isOnline ? const Color(0xFFF0FDF4) : const Color(0xFFFEF2F2),
                                         borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(
+                                          color: isOnline ? const Color(0xFFBBF7D0) : const Color(0xFFFECACA),
+                                        ),
                                       ),
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
@@ -199,19 +205,19 @@ class _DesktopScaffoldState extends State<DesktopScaffold> {
                                           Container(
                                             width: 8,
                                             height: 8,
-                                            decoration: const BoxDecoration(
-                                              color: Color(0xFF10B981),
+                                            decoration: BoxDecoration(
+                                              color: isOnline ? const Color(0xFF10B981) : const Color(0xFFEF4444),
                                               shape: BoxShape.circle,
                                             ),
                                           ),
                                           const SizedBox(width: 8),
-                                          const Flexible(
+                                          Flexible(
                                             child: Text(
-                                              'localhost:5000',
+                                              isOnline ? 'localhost:5000 • Online' : 'localhost:5000 • Offline',
                                               style: TextStyle(
                                                 fontSize: 11,
                                                 fontWeight: FontWeight.w600,
-                                                color: Color(0xFF475569),
+                                                color: isOnline ? const Color(0xFF166534) : const Color(0xFF991B1B),
                                               ),
                                               overflow: TextOverflow.ellipsis,
                                             ),

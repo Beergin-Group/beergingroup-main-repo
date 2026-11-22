@@ -3,8 +3,75 @@ import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
 import '../../services/api_service.dart';
 
-class DesktopProfileScreen extends StatelessWidget {
+class DesktopProfileScreen extends StatefulWidget {
   const DesktopProfileScreen({super.key});
+
+  @override
+  State<DesktopProfileScreen> createState() => _DesktopProfileScreenState();
+}
+
+class _DesktopProfileScreenState extends State<DesktopProfileScreen> {
+  Map<String, dynamic>? _healthInfo;
+  bool _isCheckingHealth = false;
+
+  void _checkBackend() async {
+    setState(() => _isCheckingHealth = true);
+    final health = await ApiService.checkHealth();
+    if (!mounted) return;
+    setState(() {
+      _healthInfo = health;
+      _isCheckingHealth = false;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              health != null ? Icons.cloud_done_rounded : Icons.cloud_off_rounded,
+              color: Colors.white,
+              size: 20,
+            ),
+            const SizedBox(width: 10),
+            Text(
+              health != null
+                  ? 'Connected to Node.js backend! DB Driver: ${health['db_driver'] ?? 'POSTGRES'}'
+                  : 'Cannot reach http://localhost:5000/api/health. Check backend server.',
+            ),
+          ],
+        ),
+        backgroundColor: health != null ? const Color(0xFF0D9488) : const Color(0xFFDC2626),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  void _refreshProfile() async {
+    final auth = context.read<AuthService>();
+    final ok = await auth.fetchProfile();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              ok ? Icons.verified_user_rounded : Icons.error_outline_rounded,
+              color: Colors.white,
+              size: 20,
+            ),
+            const SizedBox(width: 10),
+            Text(
+              ok
+                  ? 'Profile refreshed from GET /api/auth/me (PostgreSQL)!'
+                  : 'Failed to refresh profile from backend.',
+            ),
+          ],
+        ),
+        backgroundColor: ok ? const Color(0xFF0D9488) : const Color(0xFFDC2626),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -16,19 +83,61 @@ class DesktopProfileScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'User Profile & System Settings',
-            style: TextStyle(
-              fontSize: 26,
-              fontWeight: FontWeight.w800,
-              color: Color(0xFF0F172A),
-              letterSpacing: -0.5,
-            ),
-          ),
-          const SizedBox(height: 4),
-          const Text(
-            'Manage session credentials, role switching, and API backend connectivity.',
-            style: TextStyle(fontSize: 14, color: Color(0xFF64748B)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'User Profile & System Settings',
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF0F172A),
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    'Manage session credentials, role switching, and API backend connectivity.',
+                    style: TextStyle(fontSize: 14, color: Color(0xFF64748B)),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  OutlinedButton.icon(
+                    icon: _isCheckingHealth
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF0D9488)),
+                          )
+                        : const Icon(Icons.network_check_rounded, size: 18, color: Color(0xFF0D9488)),
+                    label: const Text('Test Connection', style: TextStyle(color: Color(0xFF0D9488))),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      side: const BorderSide(color: Color(0xFF0D9488)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    onPressed: _isCheckingHealth ? null : _checkBackend,
+                  ),
+                  const SizedBox(width: 12),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.refresh_rounded, size: 18),
+                    label: const Text('GET /api/auth/me'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF0D9488),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    onPressed: _refreshProfile,
+                  ),
+                ],
+              ),
+            ],
           ),
           const SizedBox(height: 28),
 
@@ -114,7 +223,7 @@ class DesktopProfileScreen extends StatelessWidget {
           ),
           const SizedBox(height: 24),
 
-          // System / API Connectivity Information Card (For Mr. Dionsay & Team)
+          // System / API Connectivity Information Card
           Container(
             padding: const EdgeInsets.all(28),
             decoration: BoxDecoration(
@@ -130,7 +239,7 @@ class DesktopProfileScreen extends StatelessWidget {
                     Icon(Icons.dns_rounded, color: Color(0xFF0D9488), size: 20),
                     SizedBox(width: 10),
                     Text(
-                      'API Backend Configuration (Phase 3 Port Forwarding)',
+                      'API Backend Configuration (Phase 3 localhost:5000)',
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF0F172A)),
                     ),
                   ],
@@ -138,8 +247,14 @@ class DesktopProfileScreen extends StatelessWidget {
                 const SizedBox(height: 16),
                 _buildConfigRow('Target Environment', 'Windows Desktop Native Client'),
                 _buildConfigRow('Base URL Endpoint', ApiService.baseUrl),
-                _buildConfigRow('Port Forwarding Target', 'localhost:5000 / VS Code Dev Tunnel'),
+                _buildConfigRow(
+                  'Backend Server Status',
+                  _healthInfo != null
+                      ? 'ONLINE (${_healthInfo!['system']} • Driver: ${_healthInfo!['db_driver']})'
+                      : (authService.isBackendConnected ? 'ONLINE (localhost:5000)' : 'Awaiting Test / Disconnected'),
+                ),
                 _buildConfigRow('Active Session JWT', ApiService.authToken ?? 'None'),
+                _buildConfigRow('Persistent Storage', 'Windows Registry / Native SharedPreferences'),
               ],
             ),
           ),
