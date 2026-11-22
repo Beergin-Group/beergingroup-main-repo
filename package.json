@@ -1,0 +1,11 @@
+{
+  "name": "mediremind-websystem",
+  "version": "2.0.0",
+  "description": "MediRemind Web System — Medication Management Platform (UCLIS MVC Standard) | Team Beergin",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev:backend": "node --watch backend/server.js",
+    "build:frontend": "npm run --prefix frontend build",
+    "dev:frontend": "npm run --prefix frontend dev"
+  }
+}
