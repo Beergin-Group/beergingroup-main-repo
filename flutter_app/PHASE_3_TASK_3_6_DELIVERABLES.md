@@ -9,13 +9,13 @@
 
 ---
 
-## 📌 Executive Summary
+##  Executive Summary
 
 This deliverable fulfills **Task 3.6: Build mobile touch navigation (bottom nav bar, FAB, touch modals)**. It delivers ergonomic, mobile-first touch navigation controls tailored for one-handed smartphone thumb interaction across physical Android devices and responsive mobile viewports.
 
 ---
 
-## 📋 Compliance Checklist & Acceptance Criteria Verification
+##  Compliance Checklist & Acceptance Criteria Verification
 
 | Checklist Item (Issue #45) | Technical Implementation | Status |
 | :--- | :--- | :---: |
@@ -28,7 +28,7 @@ This deliverable fulfills **Task 3.6: Build mobile touch navigation (bottom nav 
 
 ---
 
-## 📂 Deliverables Directory Map
+##  Deliverables Directory Map
 
 ```text
 flutter_app/lib/
