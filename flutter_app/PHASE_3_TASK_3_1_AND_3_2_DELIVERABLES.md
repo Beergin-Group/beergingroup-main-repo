@@ -8,7 +8,7 @@
 
 ---
 
-## 📌 Executive Summary
+##  Executive Summary
 
 This milestone covers the initial execution of **Phase 3 (Multi-Platform Deployment & Desktop UI Adaptation)**, specifically focusing on the two core front-end foundation tasks:
 1. **Task 3.1 (Issue #40):** Enable and configure the native Flutter Windows Desktop build target.
@@ -16,9 +16,9 @@ This milestone covers the initial execution of **Phase 3 (Multi-Platform Deploym
 
 ---
 
-## 📋 Compliance & Acceptance Criteria Verification
+##  Compliance & Acceptance Criteria Verification
 
-### 🔹 Task 3.1: Enable & Configure Flutter Windows Desktop Target (Issue #40)
+###  Task 3.1: Enable & Configure Flutter Windows Desktop Target (Issue #40)
 | Requirement / Checklist | Implementation Details | Status |
 | :--- | :--- | :---: |
 | **Desktop Target Activation** | Configured `pubspec.yaml` with desktop SDK constraints and `window_manager: ^0.3.8`. | **COMPLETED** |
@@ -26,7 +26,7 @@ This milestone covers the initial execution of **Phase 3 (Multi-Platform Deploym
 | **Win32 Window Lifecycle** | Integrated `wWinMain` event loop with COM initialization, UTF-8 argument parsing, and standard Windows process attachment. | **COMPLETED** |
 | **Clean Toolchain Integration** | Zero compilation errors or missing C++ header definitions. Compatible with Visual Studio C++ CMake build tools. | **COMPLETED** |
 
-### 🔹 Task 3.2: Adapt Desktop UI Layout: Sidebar NavigationRail & Window Constraints (Issue #41)
+###  Task 3.2: Adapt Desktop UI Layout: Sidebar NavigationRail & Window Constraints (Issue #41)
 | Requirement / Checklist | Implementation Details | Status |
 | :--- | :--- | :---: |
 | **Window Constraints (1024x768 Min)** | Double-enforced at two levels: <br>1. Native Win32 `WM_GETMINMAXINFO` in `my_application.cpp` intercepting track size: `mmi->ptMinTrackSize = {1024, 768}`. <br>2. Flutter layer via `windowManager.waitUntilReadyToShow` with `Size(1280, 800)` default and `Size(1024, 768)` minimum size. | **COMPLETED** |
@@ -37,7 +37,7 @@ This milestone covers the initial execution of **Phase 3 (Multi-Platform Deploym
 
 ---
 
-## 📂 Deliverables Directory Map
+##  Deliverables Directory Map
 
 ```text
 dionsy/flutter_app/
@@ -90,7 +90,7 @@ dionsy/flutter_app/
 
 ---
 
-## 💻 Step-by-Step Verification Guide for Mr. Dionsay
+##  Step-by-Step Verification Guide for Mr. Dionsay
 
 ### 1. Verification of Windows Desktop Configuration (Task 3.1)
 ```powershell
