@@ -8,15 +8,15 @@
 
 ---
 
-## 📌 Executive Summary
+##  Executive Summary
 
 This deliverable fulfills **Phase 3 Task 3.3 (Issue #42: Connect Desktop Client to localhost:5000 and Verify CRUD)**. It wires the native Flutter Windows Desktop client directly to the locally running Node.js REST API and PostgreSQL database (`localhost:5000`), implements native JWT token persistence via `shared_preferences`, establishes user authentication and profile retrieval (`GET /api/auth/me`), and validates complete end-to-end Medication CRUD lifecycle persistence directly in PostgreSQL.
 
 ---
 
-## 📋 Compliance & Technical Checklist Verification
+##  Compliance & Technical Checklist Verification
 
-### 🔹 Task 3.3: Connect Desktop Client to localhost:5000 and Verify CRUD (Issue #42)
+###  Task 3.3: Connect Desktop Client to localhost:5000 and Verify CRUD (Issue #42)
 | Requirement / Checklist Item | Implementation Details | Status |
 | :--- | :--- | :---: |
 | **1. Target `http://localhost:5000/api`** | Configured `ApiService.baseUrl` targeting `http://localhost:5000/api` across Windows desktop and local runtimes. Added `ApiService.checkHealth()` calling `/api/health` with live PostgreSQL database driver detection. | **COMPLETED** |
@@ -30,7 +30,7 @@ This deliverable fulfills **Phase 3 Task 3.3 (Issue #42: Connect Desktop Client 
 
 ---
 
-## 🎯 Acceptance Criteria Compliance
+##  Acceptance Criteria Compliance
 
 ### Criterion 1: All CRUD operations persist in the local PostgreSQL database
 - Verified via direct SQL queries against `localhost:5432/mediremind` in `verify_phase_3_3.js`:
@@ -52,7 +52,7 @@ This deliverable fulfills **Phase 3 Task 3.3 (Issue #42: Connect Desktop Client 
 
 ---
 
-## 🧪 Automated End-to-End Verification Results
+##  Automated End-to-End Verification Results
 
 All 15 verification tests pass against `http://localhost:5000` and PostgreSQL 18:
 
@@ -118,7 +118,7 @@ All 15 verification tests pass against `http://localhost:5000` and PostgreSQL 18
 
 ---
 
-## 📂 Deliverables File Map
+##  Deliverables File Map
 
 ```text
 flutter_app/
@@ -152,7 +152,7 @@ flutter_app/
 
 ---
 
-## 💻 Step-by-Step Instructions for Mr. Dionsay
+##  Step-by-Step Instructions for Mr. Dionsay
 
 ### 1. Launch Backend Server (Node.js + PostgreSQL)
 ```powershell
