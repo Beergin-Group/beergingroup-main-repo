@@ -1,0 +1,10 @@
+{
+  "remote.portsAttributes": {
+    "5000": {
+      "label": "MediRemind Backend Server",
+      "onAutoForward": "notify",
+      "elevateIfNeeded": false,
+      "requireLocalPort": false
+    }
+  }
+}

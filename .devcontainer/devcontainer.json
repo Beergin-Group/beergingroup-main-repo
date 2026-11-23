@@ -1,0 +1,11 @@
+{
+  "name": "MediRemind Development Environment",
+  "forwardPorts": [5000],
+  "portsAttributes": {
+    "5000": {
+      "label": "MediRemind Backend Server",
+      "onAutoForward": "notify",
+      "visibility": "public"
+    }
+  }
+}
