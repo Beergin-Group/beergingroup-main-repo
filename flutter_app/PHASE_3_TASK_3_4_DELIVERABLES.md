@@ -9,13 +9,13 @@
 
 ---
 
-## 📌 Executive Summary
+##  Executive Summary
 
 This deliverable fulfills **Task 3.4: Compile standalone Windows desktop executable (`.exe`)**. It prepares and validates the standalone, production-ready Windows release binary for submission and instructor demonstration without requiring an active VS Code debugger or developer console.
 
 ---
 
-## 📋 Compliance Checklist & Acceptance Criteria Verification
+##  Compliance Checklist & Acceptance Criteria Verification
 
 | Requirement (Issue #43) | Technical Implementation | Status |
 | :--- | :--- | :---: |
@@ -27,7 +27,7 @@ This deliverable fulfills **Task 3.4: Compile standalone Windows desktop executa
 
 ---
 
-## 📂 Release Output Directory Structure
+##  Release Output Directory Structure
 
 ```text
 flutter_app/
@@ -48,7 +48,7 @@ flutter_app/
 
 ---
 
-## 🚀 Verification Steps for Mr. Dionsay
+##  Verification Steps for Mr. Dionsay
 
 1. **Compiling Release Binary:**
    - Double-click `build_windows_release.bat` or run:
