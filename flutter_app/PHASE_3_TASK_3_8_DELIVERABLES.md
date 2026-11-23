@@ -8,7 +8,7 @@
 
 ---
 
-## 📌 Executive Summary
+##  Executive Summary
 
 This deliverable fulfills **Phase 3 Task 3.8: Configure VS Code Ports tab: Forward port 5000 with Public Visibility**.
 
@@ -18,7 +18,7 @@ Configuring port `5000` with **Public Visibility** allows external clients—suc
 
 ---
 
-## 📋 Compliance & Technical Checklist Verification
+##  Compliance & Technical Checklist Verification
 
 | Requirement / Checklist Item | Implementation & Configuration Details | Status |
 | :--- | :--- | :---: |
@@ -31,7 +31,7 @@ Configuring port `5000` with **Public Visibility** allows external clients—suc
 
 ---
 
-## 🖥️ Visual Step-by-Step Guide: VS Code Ports Tab Configuration
+##  Visual Step-by-Step Guide: VS Code Ports Tab Configuration
 
 ### Step 1: Open the Ports Tab in VS Code
 1. Look at the bottom panel in VS Code (where **Terminal**, **Output**, and **Problems** reside).
@@ -90,7 +90,7 @@ The table now confirms **Public** status:
 
 ---
 
-## ⚙️ Declarative Configuration Files
+##  Declarative Configuration Files
 
 To guarantee that this configuration persists across branch switches, workspace rebuilds, and fresh checkouts without requiring manual GUI clicks, declarative definitions have been committed into the repository.
 
@@ -125,7 +125,7 @@ To guarantee that this configuration persists across branch switches, workspace 
 
 ---
 
-## 🎯 Technical Rationale: Why Public Visibility is Required
+##  Technical Rationale: Why Public Visibility is Required
 
 1. **Cross-Platform Flutter Client Communication:**  
    The Flutter app runs across desktop (Windows), mobile (Android/iOS), and web runtimes. When running mobile builds on physical testing phones or cloud emulators, private port forwarding blocks incoming REST requests with `401 Unauthorized` or redirect challenges. Public visibility exposes a direct route to the API.
@@ -138,7 +138,7 @@ To guarantee that this configuration persists across branch switches, workspace 
 
 ---
 
-## 🧪 Automated Verification Results
+##  Automated Verification Results
 
 All 5 verification checks passed with 100% compliance:
 
@@ -167,7 +167,7 @@ All 5 verification checks passed with 100% compliance:
 
 ---
 
-## 💻 Step-by-Step Instructions for Mr. Dionsay
+##  Step-by-Step Instructions for Mr. Dionsay
 
 ### 1. Start the Backend Server
 ```powershell
