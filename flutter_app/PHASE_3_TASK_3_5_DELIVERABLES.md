@@ -9,13 +9,13 @@
 
 ---
 
-## 📌 Executive Summary
+##  Executive Summary
 
 This deliverable fulfills **Task 3.5: Configure Android Gradle build settings and app permissions**. It creates and configures the native Android application wrapper for MediRemind, aligning with modern Android 14 (API 34) specifications and establishing necessary system permissions for background dose reminder scheduling, local push notifications, and network API communication.
 
 ---
 
-## 📋 Compliance Checklist & Acceptance Criteria Verification
+##  Compliance Checklist & Acceptance Criteria Verification
 
 | Checklist Item (Issue #44) | Technical Implementation | Status |
 | :--- | :--- | :---: |
@@ -31,7 +31,7 @@ This deliverable fulfills **Task 3.5: Configure Android Gradle build settings an
 
 ---
 
-## 📂 Deliverables Directory Map
+##  Deliverables Directory Map
 
 ```text
 flutter_app/android/
@@ -58,7 +58,7 @@ flutter_app/android/
 
 ---
 
-## 🚀 Verification Steps for Mr. Dionsay
+##  Verification Steps for Mr. Dionsay
 
 1. **Gradle Build Configuration Inspection:**
    - Inspect `android/app/build.gradle` to verify exact SDK targets:
