@@ -3,8 +3,87 @@ import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
 import '../../services/api_service.dart';
 
-class MobileProfileScreen extends StatelessWidget {
+class MobileProfileScreen extends StatefulWidget {
   const MobileProfileScreen({super.key});
+
+  @override
+  State<MobileProfileScreen> createState() => _MobileProfileScreenState();
+}
+
+class _MobileProfileScreenState extends State<MobileProfileScreen> {
+  String? _pingResult;
+  bool _isPinging = false;
+
+  void _testPing() async {
+    setState(() {
+      _isPinging = true;
+      _pingResult = null;
+    });
+
+    final res = await ApiService.checkHealth();
+    setState(() {
+      _isPinging = false;
+      if (res['status'] == 'connected') {
+        _pingResult = 'Connected (${res['latency_ms']} ms) ✓';
+      } else {
+        _pingResult = 'Failed: ${res['status']} (${res['latency_ms']} ms)';
+      }
+    });
+  }
+
+  void _showConfigureTunnelDialog() {
+    final controller = TextEditingController(text: ApiService.baseUrl);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Dev Tunnel Configuration', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Enter the VS Code Dev Tunnel HTTPS endpoint (or custom server URL) for port 5000:',
+              style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              decoration: InputDecoration(
+                hintText: 'https://<tunnel-id>.devtunnels.ms/api',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              ),
+              style: const TextStyle(fontSize: 13),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              await ApiService.resetBaseUrl();
+              if (mounted) setState(() {});
+              Navigator.of(ctx).pop();
+            },
+            child: const Text('Reset Default', style: TextStyle(color: Color(0xFF64748B))),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF0D9488),
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () async {
+              await ApiService.setCustomBaseUrl(controller.text);
+              if (mounted) setState(() {});
+              Navigator.of(ctx).pop();
+              _testPing();
+            },
+            child: const Text('Save & Test'),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -111,7 +190,7 @@ class MobileProfileScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
-          // Dev Tunnel / API Connectivity Info
+          // Dev Tunnel / Centralized API Endpoint Info (Task 3.9)
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -122,22 +201,63 @@ class MobileProfileScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Row(
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Icon(Icons.wifi_tethering_rounded, size: 18, color: Color(0xFF0D9488)),
-                    SizedBox(width: 8),
-                    Text('API Endpoint Configuration', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                    const Row(
+                      children: [
+                        Icon(Icons.wifi_tethering_rounded, size: 18, color: Color(0xFF0D9488)),
+                        SizedBox(width: 8),
+                        Text('Dev Tunnel API Endpoint', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                      ],
+                    ),
+                    TextButton.icon(
+                      icon: const Icon(Icons.edit, size: 14),
+                      label: const Text('Edit', style: TextStyle(fontSize: 12)),
+                      onPressed: _showConfigureTunnelDialog,
+                    ),
                   ],
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
                 Text(
-                  'Base URL: ${ApiService.baseUrl}',
-                  style: const TextStyle(fontSize: 12, color: Color(0xFF475569)),
+                  ApiService.baseUrl,
+                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
                 const Text(
-                  'Android Tunnel: devtunnels.ms HTTPS route',
-                  style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                  'Environment-aware: Routes through secure Dev Tunnel HTTPS URL on Android mobile.',
+                  style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    ElevatedButton.icon(
+                      icon: _isPinging
+                          ? const SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                          : const Icon(Icons.network_ping_rounded, size: 16),
+                      label: const Text('Test Connection', style: TextStyle(fontSize: 12)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF0D9488),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      ),
+                      onPressed: _isPinging ? null : _testPing,
+                    ),
+                    if (_pingResult != null) ...[
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          _pingResult!,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: _pingResult!.contains('Connected') ? const Color(0xFF16A34A) : const Color(0xFFDC2626),
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ],
             ),

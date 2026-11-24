@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 
+import 'services/api_service.dart';
 import 'services/auth_service.dart';
 import 'services/medicine_service.dart';
 import 'layouts/responsive_layout.dart';
@@ -13,6 +14,7 @@ import 'screens/login_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await ApiService.initialize();
 
   // Desktop Window Constraints Configuration (Task 3.1 & 3.2 Requirement)
   if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
