@@ -1,0 +1,28 @@
+{
+  "version": 3,
+  "artifactType": {
+    "type": "APK"
+  },
+  "applicationId": "com.beergingroup.mediremind",
+  "variantName": "debug",
+  "outputFile": "app-debug.apk",
+  "elements": [
+    {
+      "type": "SINGLE",
+      "filters": [],
+      "attributes": [],
+      "versionCode": 1,
+      "versionName": "1.0.0",
+      "outputFile": "app-debug.apk"
+    }
+  ],
+  "elementType": "File",
+  "task": "3.10",
+  "buildType": "debug",
+  "minSdkVersion": 21,
+  "targetSdkVersion": 34,
+  "compileSdkVersion": 34,
+  "author": "Jibson Cabilin (@jizzcabilin-art)",
+  "coAssignedQA": "Nove Calasang (@Nove-Calasang)",
+  "team": "Beergin"
+}
