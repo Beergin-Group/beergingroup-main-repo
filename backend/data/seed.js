@@ -53,6 +53,10 @@ async function seed() {
     caregiver_id: caregiver.id,
     name: 'Grandmother Rosa (78y/o)',
     relationship: 'Grandmother',
+    custom_relationship: null,
+    email: 'rosa.santos@gmail.com',
+    age: 78,
+    address: 'Barangay Lahug, Cebu City',
     date_of_birth: '1948-04-12',
     emergency_contact: '+63 917 555 1234',
     notes: 'Chronic hypertension and type 2 diabetes management.'
@@ -61,7 +65,11 @@ async function seed() {
   const depTimmy = await db.dependents.create({
     caregiver_id: caregiver.id,
     name: 'Timmy Santos (9y/o)',
-    relationship: 'Son',
+    relationship: 'Child',
+    custom_relationship: 'Son',
+    email: 'timmy.caregiver@gmail.com',
+    age: 9,
+    address: 'Barangay Lahug, Cebu City',
     date_of_birth: '2017-08-20',
     emergency_contact: '+63 917 555 5678',
     notes: 'Childhood asthma and seasonal allergies.'

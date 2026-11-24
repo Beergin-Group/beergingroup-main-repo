@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
 import api from '../services/api'
 import PageHeader from '../components/PageHeader'
 import StatusBadge from '../components/StatusBadge'
@@ -8,6 +9,7 @@ import Modal from '../components/Modal'
 
 export default function Medicines() {
   const { activeDependentId } = useAuth()
+  const { toast } = useToast()
   const [medicines, setMedicines] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -21,6 +23,7 @@ export default function Medicines() {
     dosage: '',
     form: 'tablet',
     instructions: '',
+    is_prn: false,
     stock_count: 30,
     low_stock_threshold: 5,
     color: '#0d9488',
@@ -39,6 +42,7 @@ export default function Medicines() {
       }
     } catch (err) {
       console.error('Failed to load medicines:', err)
+      toast.error('Failed to load medicines catalog.')
     } finally {
       setLoading(false)
     }
@@ -55,6 +59,7 @@ export default function Medicines() {
       dosage: '',
       form: 'tablet',
       instructions: '',
+      is_prn: false,
       stock_count: 30,
       low_stock_threshold: 5,
       color: '#0d9488',
@@ -71,6 +76,7 @@ export default function Medicines() {
       dosage: med.dosage,
       form: med.form || 'tablet',
       instructions: med.instructions || '',
+      is_prn: med.instructions?.toLowerCase().includes('as-needed') || false,
       stock_count: med.stock_count || 0,
       low_stock_threshold: med.low_stock_threshold || 5,
       color: med.color || '#0d9488',
@@ -82,19 +88,46 @@ export default function Medicines() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+
+    // Deduplication check: Same name, dosage, form, and color
+    if (!editingMed) {
+      const isDuplicate = medicines.some(
+        m =>
+          m.name.trim().toLowerCase() === formData.name.trim().toLowerCase() &&
+          m.dosage.trim().toLowerCase() === formData.dosage.trim().toLowerCase() &&
+          (m.form || 'tablet').toLowerCase() === (formData.form || 'tablet').toLowerCase() &&
+          (m.color || '').toLowerCase() === (formData.color || '').toLowerCase()
+      )
+
+      if (isDuplicate) {
+        toast.error('Duplicate medicine! A card with identical name, dosage, form, and color already exists.')
+        return
+      }
+    }
+
     try {
+      const payload = {
+        ...formData,
+        instructions: formData.is_prn && !formData.instructions.toLowerCase().includes('as-needed')
+          ? `${formData.instructions ? formData.instructions + ' • ' : ''}Taken as-needed (PRN)`
+          : formData.instructions
+      }
+
       if (editingMed) {
-        await api.put(`/medicines/${editingMed.id}`, formData)
+        await api.put(`/medicines/${editingMed.id}`, payload)
+        toast.success(`Updated ${formData.name} successfully!`)
       } else {
         await api.post('/medicines', {
-          ...formData,
+          ...payload,
           dependent_id: activeDependentId
         })
+        toast.success(`Added ${formData.name} to catalog!`)
       }
       setModalOpen(false)
       loadMedicines()
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to save medicine.')
+      const msg = err.response?.data?.message || 'Failed to save medicine.'
+      toast.error(msg)
     }
   }
 
@@ -102,10 +135,12 @@ export default function Medicines() {
     if (!deleteMed) return
     try {
       await api.delete(`/medicines/${deleteMed.id}`)
+      toast.info(`Deleted ${deleteMed.name}.`)
       setDeleteMed(null)
       loadMedicines()
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to delete medicine.')
+      const msg = err.response?.data?.message || 'Failed to delete medicine.'
+      toast.error(msg)
     }
   }
 
@@ -113,10 +148,12 @@ export default function Medicines() {
     if (!refillMed) return
     try {
       await api.post(`/medicines/${refillMed.id}/refill`, { amount: refillAmount })
+      toast.success(`Refilled ${refillAmount} units of ${refillMed.name}.`)
       setRefillMed(null)
       loadMedicines()
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to refill stock.')
+      const msg = err.response?.data?.message || 'Failed to refill stock.'
+      toast.error(msg)
     }
   }
 
@@ -161,6 +198,8 @@ export default function Medicines() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map(med => {
             const isLowStock = med.stock_count <= med.low_stock_threshold
+            const isPrn = med.instructions?.toLowerCase().includes('as-needed') || med.instructions?.toLowerCase().includes('prn')
+
             return (
               <div key={med.id} className="card p-5 border border-slate-200/80 hover:shadow-md transition-all flex flex-col justify-between">
                 <div>
@@ -172,9 +211,16 @@ export default function Medicines() {
                       />
                       <h3 className="font-extrabold text-slate-900 text-base">{med.name}</h3>
                     </div>
-                    <span className="text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
-                      {med.dosage}
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      {isPrn && (
+                        <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md bg-purple-100 text-purple-700">
+                          PRN
+                        </span>
+                      )}
+                      <span className="text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
+                        {med.dosage}
+                      </span>
+                    </div>
                   </div>
 
                   <p className="text-xs text-slate-500 capitalize mt-2 font-medium">
@@ -250,7 +296,7 @@ export default function Medicines() {
                 required
                 value={formData.name}
                 onChange={e => setFormData({ ...formData, name: e.target.value })}
-                placeholder="e.g. Amoxicillin, Metformin, Lisinopril"
+                placeholder="e.g. Amoxicillin, Paracetamol, Loperamide"
                 className="input-field"
               />
             </div>
@@ -263,7 +309,7 @@ export default function Medicines() {
                   required
                   value={formData.dosage}
                   onChange={e => setFormData({ ...formData, dosage: e.target.value })}
-                  placeholder="e.g. 500mg, 10ml, 1 puff"
+                  placeholder="e.g. 500mg, 10ml, 1 sachet"
                   className="input-field"
                 />
               </div>
@@ -277,6 +323,7 @@ export default function Medicines() {
                   <option value="tablet">Tablet</option>
                   <option value="capsule">Capsule</option>
                   <option value="syrup">Syrup / Liquid</option>
+                  <option value="powder">Powder</option>
                   <option value="injection">Injection</option>
                   <option value="inhaler">Inhaler</option>
                   <option value="drops">Drops</option>
@@ -286,7 +333,7 @@ export default function Medicines() {
             </div>
 
             <div>
-              <label className="text-xs font-bold text-slate-700 block mb-1">Instructions</label>
+              <label className="text-xs font-bold text-slate-700 block mb-1">Instructions / Meal Relation</label>
               <input
                 type="text"
                 value={formData.instructions}
@@ -294,6 +341,23 @@ export default function Medicines() {
                 placeholder="e.g. Take with a glass of water after meals"
                 className="input-field"
               />
+            </div>
+
+            {/* As-Needed (PRN) Checkbox */}
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-start gap-3">
+              <input
+                type="checkbox"
+                id="is_prn_checkbox"
+                checked={formData.is_prn}
+                onChange={e => setFormData({ ...formData, is_prn: e.target.checked })}
+                className="mt-0.5 rounded text-teal-600 focus:ring-teal-500 w-4 h-4 cursor-pointer"
+              />
+              <label htmlFor="is_prn_checkbox" className="text-xs text-slate-700 cursor-pointer">
+                <span className="font-bold text-slate-900 block">As-Needed Medication (PRN)</span>
+                <span className="text-slate-500">
+                  Allow taking this medication as needed without mandatory reminder schedules (e.g. Loperamide, Pain relievers).
+                </span>
+              </label>
             </div>
 
             <div className="grid grid-cols-2 gap-3">

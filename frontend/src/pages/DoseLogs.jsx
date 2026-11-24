@@ -5,6 +5,31 @@ import PageHeader from '../components/PageHeader'
 import StatusBadge from '../components/StatusBadge'
 import Spinner from '../components/Spinner'
 
+export function formatDateTime(isoString) {
+  if (!isoString) return '—'
+  try {
+    const d = new Date(isoString)
+    if (isNaN(d.getTime())) return isoString
+
+    // Extract time component cleanly
+    let timeStr = ''
+    if (isoString.includes('T')) {
+      const timePart = isoString.split('T')[1].substring(0, 5)
+      const [h, m] = timePart.split(':').map(Number)
+      const ampm = h >= 12 ? 'PM' : 'AM'
+      const formattedH = h % 12 || 12
+      timeStr = `${formattedH}:${m < 10 ? '0' + m : m} ${ampm}`
+    } else {
+      timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    }
+
+    const dateStr = d.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })
+    return `${dateStr} · ${timeStr}`
+  } catch (e) {
+    return isoString
+  }
+}
+
 export default function DoseLogs() {
   const { activeDependentId } = useAuth()
   const [logs, setLogs] = useState([])
@@ -40,7 +65,7 @@ export default function DoseLogs() {
     <div className="space-y-6">
       <PageHeader
         title="Dose History & Audit Log"
-        subtitle="Complete record of all taken, skipped, and recorded doses over time."
+        subtitle="Complete record of all taken, skipped, and pending doses over time."
         actions={
           <button onClick={loadLogs} className="btn-secondary">
             ↻ Refresh Log
@@ -49,8 +74,8 @@ export default function DoseLogs() {
       />
 
       {/* Filter Tabs */}
-      <div className="flex gap-2 border-b border-slate-200 pb-3">
-        {['all', 'taken', 'skipped'].map(st => (
+      <div className="flex flex-wrap gap-2 border-b border-slate-200 pb-3">
+        {['all', 'taken', 'skipped', 'pending'].map(st => (
           <button
             key={st}
             onClick={() => setStatusFilter(st)}
@@ -90,12 +115,7 @@ export default function DoseLogs() {
                 {filtered.map(log => (
                   <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4 font-mono font-medium text-slate-800 text-xs whitespace-nowrap">
-                      {new Date(log.scheduled_time).toLocaleString([], {
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
+                      {formatDateTime(log.scheduled_time)}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
@@ -108,10 +128,16 @@ export default function DoseLogs() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <StatusBadge status={log.status} />
+                      {log.status === 'pending' ? (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border bg-amber-50 text-amber-700 border-amber-200/60">
+                          <span className="animate-pulse">⏳</span> Pending
+                        </span>
+                      ) : (
+                        <StatusBadge status={log.status} />
+                      )}
                     </td>
                     <td className="px-6 py-4 font-mono text-xs text-slate-500 whitespace-nowrap">
-                      {log.recorded_at ? new Date(log.recorded_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}
+                      {log.recorded_at ? formatDateTime(log.recorded_at) : '—'}
                     </td>
                     <td className="px-6 py-4 text-xs text-slate-600">
                       {log.notes || <span className="text-slate-300 italic">No notes</span>}

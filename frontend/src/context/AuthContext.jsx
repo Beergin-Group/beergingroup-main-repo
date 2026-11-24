@@ -45,13 +45,7 @@ export function AuthProvider({ children }) {
 
   const register = async (userData) => {
     const res = await api.post('/auth/register', userData)
-    const { token: t, user: u } = res.data
-    setToken(t)
-    setUser(u)
-    localStorage.setItem('mediremind_token', t)
-    localStorage.setItem('mediremind_user', JSON.stringify(u))
-    api.defaults.headers.common['Authorization'] = `Bearer ${t}`
-    return u
+    return res.data
   }
 
   const logout = () => {

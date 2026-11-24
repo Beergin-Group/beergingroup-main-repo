@@ -1,6 +1,31 @@
 const db = require('../config/db');
 
+function normalizeTimes(doseTimes) {
+  if (!Array.isArray(doseTimes)) {
+    if (typeof doseTimes === 'string') {
+      try {
+        doseTimes = JSON.parse(doseTimes);
+      } catch (e) {
+        doseTimes = [];
+      }
+    } else {
+      doseTimes = [];
+    }
+  }
+  return doseTimes.map(t => {
+    if (!t) return '08:00';
+    const clean = String(t).trim();
+    const match = clean.match(/^(\d{1,2}):(\d{2})/);
+    if (match) {
+      return `${match[1].padStart(2, '0')}:${match[2]}`;
+    }
+    return clean;
+  }).sort();
+}
+
 const Schedule = {
+  normalizeTimes,
+
   async findByUser(userId, dependentId = null) {
     if (db.getDriver() === 'postgres') {
       let q = `
@@ -20,7 +45,7 @@ const Schedule = {
       const res = await db.getPgPool().query(q, params);
       return res.rows.map(r => ({
         ...r,
-        dose_times: typeof r.dose_times === 'string' ? JSON.parse(r.dose_times) : r.dose_times
+        dose_times: normalizeTimes(r.dose_times)
       }));
     }
     const store = db.getStore();
@@ -38,7 +63,7 @@ const Schedule = {
           icon: med.icon,
           stock_count: med.stock_count,
           instructions: med.instructions,
-          dose_times: Array.isArray(s.dose_times) ? s.dose_times : JSON.parse(s.dose_times || '[]')
+          dose_times: normalizeTimes(s.dose_times)
         };
       })
       .sort((a, b) => b.id - a.id);
@@ -51,19 +76,62 @@ const Schedule = {
       const r = res.rows[0];
       return {
         ...r,
-        dose_times: typeof r.dose_times === 'string' ? JSON.parse(r.dose_times) : r.dose_times
+        dose_times: normalizeTimes(r.dose_times)
       };
     }
     const s = db.getStore().schedules.find(x => Number(x.id) === Number(id));
     if (!s) return null;
     return {
       ...s,
-      dose_times: Array.isArray(s.dose_times) ? s.dose_times : JSON.parse(s.dose_times || '[]')
+      dose_times: normalizeTimes(s.dose_times)
     };
   },
 
+  async findDuplicate(userId, dependentId, { medicine_id, frequency_type, start_date, dose_times }, excludeId = null) {
+    const timesNorm = normalizeTimes(dose_times);
+    const timesJson = JSON.stringify(timesNorm);
+
+    if (db.getDriver() === 'postgres') {
+      let q = `
+        SELECT * FROM schedules
+        WHERE user_id = $1
+          AND (dependent_id IS NOT DISTINCT FROM $2)
+          AND medicine_id = $3
+          AND frequency_type = $4
+          AND start_date = $5
+          AND dose_times = $6
+      `;
+      const params = [userId, dependentId || null, medicine_id, frequency_type || 'daily', start_date, timesJson];
+      if (excludeId) {
+        q += ' AND id != $7';
+        params.push(excludeId);
+      }
+      const res = await db.getPgPool().query(q, params);
+      return res.rows[0] || null;
+    }
+
+    const store = db.getStore();
+    return store.schedules.find(s => {
+      if (Number(s.user_id) !== Number(userId)) return false;
+      const sDep = s.dependent_id ? Number(s.dependent_id) : null;
+      const targetDep = dependentId ? Number(dependentId) : null;
+      if (sDep !== targetDep) return false;
+      if (excludeId && Number(s.id) === Number(excludeId)) return false;
+
+      const sTimes = normalizeTimes(s.dose_times);
+      return (
+        Number(s.medicine_id) === Number(medicine_id) &&
+        s.frequency_type === (frequency_type || 'daily') &&
+        String(s.start_date).split('T')[0] === String(start_date).split('T')[0] &&
+        JSON.stringify(sTimes) === timesJson
+      );
+    }) || null;
+  },
+
   async create(data) {
-    const timesJson = Array.isArray(data.dose_times) ? JSON.stringify(data.dose_times) : data.dose_times;
+    const normalizedTimes = normalizeTimes(data.dose_times);
+    const timesJson = JSON.stringify(normalizedTimes);
+
     if (db.getDriver() === 'postgres') {
       const res = await db.getPgPool().query(
         `INSERT INTO schedules (medicine_id, user_id, dependent_id, frequency_type, frequency_value, dose_times, meal_timing, start_date, end_date, is_active)
@@ -82,8 +150,9 @@ const Schedule = {
         ]
       );
       const r = res.rows[0];
-      return { ...r, dose_times: JSON.parse(r.dose_times) };
+      return { ...r, dose_times: normalizeTimes(r.dose_times) };
     }
+
     const store = db.getStore();
     const id = store.schedules.length ? Math.max(...store.schedules.map(s => s.id)) + 1 : 1;
     const newSchedule = {
@@ -93,7 +162,7 @@ const Schedule = {
       dependent_id: data.dependent_id ? Number(data.dependent_id) : null,
       frequency_type: data.frequency_type || 'daily',
       frequency_value: data.frequency_value || '1',
-      dose_times: Array.isArray(data.dose_times) ? data.dose_times : JSON.parse(timesJson || '[]'),
+      dose_times: normalizedTimes,
       meal_timing: data.meal_timing || 'no_food_relation',
       start_date: data.start_date || new Date().toISOString().split('T')[0],
       end_date: data.end_date || null,
@@ -106,6 +175,10 @@ const Schedule = {
   },
 
   async update(id, userId, updates) {
+    if (updates.dose_times !== undefined) {
+      updates.dose_times = normalizeTimes(updates.dose_times);
+    }
+
     if (db.getDriver() === 'postgres') {
       const fields = [];
       const values = [];
@@ -113,7 +186,7 @@ const Schedule = {
       for (const [key, val] of Object.entries(updates)) {
         if (['frequency_type', 'frequency_value', 'dose_times', 'meal_timing', 'start_date', 'end_date', 'is_active'].includes(key)) {
           fields.push(`${key} = $${i}`);
-          values.push(key === 'dose_times' && Array.isArray(val) ? JSON.stringify(val) : val);
+          values.push(key === 'dose_times' ? JSON.stringify(val) : val);
           i++;
         }
       }
@@ -123,14 +196,18 @@ const Schedule = {
       const res = await db.getPgPool().query(q, values);
       if (!res.rows[0]) return null;
       const r = res.rows[0];
-      return { ...r, dose_times: typeof r.dose_times === 'string' ? JSON.parse(r.dose_times) : r.dose_times };
+      return { ...r, dose_times: normalizeTimes(r.dose_times) };
     }
+
     const store = db.getStore();
     const idx = store.schedules.findIndex(s => Number(s.id) === Number(id) && Number(s.user_id) === Number(userId));
     if (idx === -1) return null;
     store.schedules[idx] = { ...store.schedules[idx], ...updates };
     db.persistStore();
-    return store.schedules[idx];
+    return {
+      ...store.schedules[idx],
+      dose_times: normalizeTimes(store.schedules[idx].dose_times)
+    };
   },
 
   async delete(id, userId) {

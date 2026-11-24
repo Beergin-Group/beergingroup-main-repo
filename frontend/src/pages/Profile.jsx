@@ -1,12 +1,16 @@
+import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import PageHeader from '../components/PageHeader'
+import Modal from '../components/Modal'
 
 export default function Profile() {
   const { user, logout } = useAuth()
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
   const navigate = useNavigate()
 
-  const handleLogout = () => {
+  const handleConfirmLogout = () => {
+    setShowLogoutModal(false)
     logout()
     navigate('/login')
   }
@@ -58,11 +62,35 @@ export default function Profile() {
             <p className="text-xs font-bold text-slate-800">Sign out of this session</p>
             <p className="text-[11px] text-slate-400">Tokens will be cleared from this browser.</p>
           </div>
-          <button onClick={handleLogout} className="btn-danger">
+          <button onClick={() => setShowLogoutModal(true)} className="btn-danger">
             Log Out Now
           </button>
         </div>
       </div>
+
+      {showLogoutModal && (
+        <Modal
+          title="Confirm Log Out"
+          onClose={() => setShowLogoutModal(false)}
+          footer={
+            <>
+              <button onClick={() => setShowLogoutModal(false)} className="btn-secondary">
+                Cancel
+              </button>
+              <button onClick={handleConfirmLogout} className="btn-danger">
+                Confirm Log Out
+              </button>
+            </>
+          }
+        >
+          <div className="py-2 text-slate-700 text-sm">
+            <p className="font-semibold text-base text-slate-900 mb-1">Are you sure you want to log out?</p>
+            <p className="text-xs text-slate-500">
+              You will need to sign in again to access your medication records and schedules.
+            </p>
+          </div>
+        </Modal>
+      )}
     </div>
   )
 }
